@@ -1,0 +1,74 @@
+<div class="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow">
+    <div>
+      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Edit <%= resource_name.to_s.humanize %></h2>
+    </div>
+
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: "mt-8 space-y-6" }) do |f| %>
+      <%= render "devise/shared/error_messages", resource: resource %>
+
+      <div class="rounded-md -space-y-px">
+        <div class="mb-4">
+          <%= f.label :name, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.text_field :name, autofocus: true, autocomplete: "name", 
+              class: "mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" %>
+        </div>
+
+        <div class="mb-4">
+          <%= f.label :email, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.email_field :email, autocomplete: "email", 
+              class: "mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" %>
+        </div>
+
+        <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
+          <div class="mb-4 text-sm text-gray-600">
+            Currently waiting confirmation for: <%= resource.unconfirmed_email %>
+          </div>
+        <% end %>
+
+        <div class="mb-4">
+          <%= f.label :password, class: "block text-sm font-medium text-gray-700" %>
+          <span class="text-xs text-gray-500">(leave blank if you don't want to change it)</span>
+          <%= f.password_field :password, autocomplete: "new-password", 
+              class: "mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" %>
+          <% if @minimum_password_length %>
+            <span class="text-xs text-gray-500"><%= @minimum_password_length %> characters minimum</span>
+          <% end %>
+        </div>
+
+        <div class="mb-4">
+          <%= f.label :password_confirmation, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password", 
+              class: "mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" %>
+        </div>
+
+        <div class="mb-4">
+          <%= f.label :current_password, class: "block text-sm font-medium text-gray-700" %>
+          <span class="text-xs text-gray-500">(we need your current password to confirm your changes)</span>
+          <%= f.password_field :current_password, autocomplete: "current-password", 
+              class: "mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" %>
+        </div>
+      </div>
+
+      <div>
+        <%= f.submit "Update", 
+            class: "group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+      </div>
+    <% end %>
+
+    <div class="mt-8 pt-8 border-t border-gray-200">
+      <div class="flex flex-col items-center">
+        <%= button_to "Delete my account", 
+            registration_path(resource_name), 
+            data: { confirm: "Are you sure?", turbo_confirm: "Are you sure?" }, 
+            method: :delete, 
+            class: "inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" %>
+      </div>
+    </div>
+
+    <div class="mt-4 text-center">
+      <%= link_to "Back", :back, 
+          class: "text-sm text-indigo-600 hover:text-indigo-500" %>
+    </div>
+  </div>
+</div>

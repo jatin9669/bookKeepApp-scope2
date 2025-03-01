@@ -1,0 +1,39 @@
+<% content_for :title, "Issued books" %>
+
+<div class="w-full">
+
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="font-bold text-4xl">Issued books Request</h1>
+  </div>
+
+  <div id="issued_books" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <% if @issued_books.any? %>
+      <% @issued_books.each do |issued_book| %>
+        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300 ease-in-out">
+          <% if issued_book.book&.image_url.present? %>
+            <img src="<%= issued_book.book.image_url %>" alt="<%= issued_book.book&.book_name %>" class="w-full h-48 object-cover">
+          <% end %>
+          
+          <div class="p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-2"><%= issued_book.book&.book_name || "Unknown Book" %></h2>
+            <p class="text-gray-600 text-sm mb-4">by <%= issued_book.book&.author_name || "N/A" %></p>
+            
+            <div class="border-t pt-4 mt-4">
+              <h3 class="font-semibold text-gray-800">Issue Request:</h3>
+              <p class="text-gray-600"><%= issued_book.user&.name || "Unknown User" %></p>
+              <p class="text-gray-500 text-sm"><%= issued_book.user&.email || "N/A" %></p>
+              <p class="text-gray-500 text-sm mt-2">Issue Request Date: <%= issued_book.created_at.strftime("%B %d, %Y") %></p>
+            </div>
+
+            <div class="flex justify-between items-center mt-4 pt-4 border-t">
+              <%= button_to "Accept", issue_book_path(issued_book), method: :post, class: "text-blue-600 hover:text-blue-800 font-medium" %>
+              <%= button_to "Reject", issued_book, method: :delete, class: "text-red-600 hover:text-red-800 font-medium", data: { turbo_confirm: "Are you sure?" } %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <p class="text-center col-span-full my-10">No issue Request found.</p>
+    <% end %>
+  </div>
+</div>
