@@ -1,4 +1,4 @@
-<div id="<%= dom_id book %>" class="flex flex-col rounded-lg overflow-hidden">
+<%= link_to book_path(book), class: "flex flex-col rounded-lg overflow-hidden group" do %>
   <% if book.image_url.present? %>
     <img src="<%= book.image_url %>" 
          alt="<%= book.book_name %>" 
@@ -13,17 +13,16 @@
   <% end %>
   
   <div class="p-6 flex-1">
-    <h2 class="text-xl font-bold text-gray-900 mb-2 line-clamp-1 hover:line-clamp-none transition-all duration-200">
+    <h2 class="text-xl font-bold text-gray-900 mb-2 line-clamp-1 group-hover:line-clamp-none transition-all duration-200">
       <%= book.book_name %>
     </h2>
-    <p class="text-gray-600 text-sm mb-4 italic">by <%= book.author_name %></p>
+    <p class="text-gray-600 text-sm <%= user_signed_in? ? "mb-4" : "mb-2" %> italic">by <%= book.author_name %></p>
     
-    <%= link_to book_path(book), 
-        class: "inline-flex items-center text-blue-600 hover:text-blue-800 font-medium group transition-all duration-200" do %>
+    <div class="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium transition-all duration-200">
       View Details
       <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
       </svg>
-    <% end %>
+    </div>
   </div>
-</div>
+<% end %>

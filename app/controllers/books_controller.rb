@@ -1,5 +1,8 @@
 class BooksController < ApplicationController
+  before_action :authenticate_user!, except: %i[ index show ]
+  before_action :require_non_admin, only: %i[ my_books ]
   before_action :set_book, only: %i[ show edit update destroy ]
+  before_action :require_admin, only: %i[ update destroy create new edit ]
 
   # GET /books or /books.json
   def index
@@ -61,7 +64,7 @@ class BooksController < ApplicationController
   end
 
   def my_books
-    @books = Book.where(user_id: current_user.id)
+    @books = 
     @return_requests = ReturnedBook.where(user_id: current_user.id)
     
     if params[:query].present?
@@ -80,5 +83,19 @@ class BooksController < ApplicationController
     # Only allow a list of trusted parameters through.
     def book_params
       params.expect(book: [ :user_id, :author_name, :book_name, :image_url ])
+    end
+
+    def require_non_admin
+      unless !current_user.is_admin?
+        flash[:alert] = "Admins dont have collections."
+        redirect_to root_path
+      end
+    end
+
+    def require_admin
+      unless current_user.is_admin?
+        flash[:alert] = "You can not perform this action."
+        redirect_to root_path
+      end
     end
 end

@@ -5,29 +5,43 @@
     <h1 class="font-bold text-4xl text-gray-900">My Books</h1>
   </div>
 
-  <div id="books" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+  <div id="books" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
     <% if @books.any? %>
       <% @books.each do |book| %>
-        <div class="space-y-3 <%= 'opacity-75' if @return_requests.pluck(:book_id).include?(book.id) %>">
+        <div class="group bg-white rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 <%= 'opacity-75' if @return_requests.pluck(:book_id).include?(book.id) %>">
           <%= render book %>
-          <div class="px-2">
+          
+          <div class="p-4 border-t border-gray-100 bg-gray-50 rounded-b-lg">
             <% if @return_requests.pluck(:book_id).include?(book.id) %>
-              <button type="button" disabled
-                  class="w-full rounded-md px-3 py-2 bg-green-400 text-white font-medium cursor-not-allowed">
+              <button disabled class="w-full px-4 py-2.5 bg-yellow-400 text-white font-medium rounded-md cursor-not-allowed flex items-center justify-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
                 Return Requested
               </button>
             <% else %>
-              <%= button_to "Request to Return", returned_books_path, 
-                    params: { returned_book: { book_id: book.id, user_id: current_user.id } },
-                    method: :post,
-                    class: "w-full rounded-md px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium transition duration-150 ease-in-out" %>
+              <%= button_to returned_books_path, 
+                  params: { returned_book: { book_id: book.id, user_id: current_user.id } },
+                  method: :post,
+                  class: "w-full px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-md transition duration-200 flex items-center justify-center cursor-pointer" do %>
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3"/>
+                </svg>
+                Request to Return
+              <% end %>
             <% end %>
           </div>
         </div>
       <% end %>
     <% else %>
       <div class="col-span-full">
-        <p class="text-center text-gray-500 text-lg my-10">No book Issued.</p>
+        <div class="text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+          <h3 class="mt-2 text-lg font-medium text-gray-900">No books found</h3>
+          <p class="mt-1 text-gray-500">You haven't borrowed any books yet.</p>
+        </div>
       </div>
     <% end %>
   </div>

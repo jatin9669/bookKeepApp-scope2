@@ -1,4 +1,6 @@
 class IssuedBooksController < ApplicationController
+  before_action :authenticate_user!
+  before_action :require_admin
   before_action :set_issued_book, only: %i[ show edit update destroy ]
 
   # GET /issued_books or /issued_books.json
@@ -90,5 +92,12 @@ class IssuedBooksController < ApplicationController
     # Only allow a list of trusted parameters through.
     def issued_book_params
       params.require(:issued_book).permit(:book_id, :user_id)
+    end
+
+    def require_admin
+      unless current_user.is_admin?
+        flash[:alert] = "You are not authorized to access this page."
+        redirect_to root_path
+      end
     end
 end

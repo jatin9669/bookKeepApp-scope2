@@ -1,4 +1,6 @@
 class ReturnedBooksController < ApplicationController
+  before_action :authenticate_user!
+  before_action :require_admin
   before_action :set_returned_book, only: %i[ show edit update destroy ]
 
   # GET /returned_books or /returned_books.json
@@ -86,5 +88,12 @@ class ReturnedBooksController < ApplicationController
     # Only allow a list of trusted parameters through.
     def returned_book_params
       params.expect(returned_book: [ :user_id, :book_id ])
+    end
+
+    def require_admin
+      unless current_user.is_admin?
+        flash[:alert] = "You are not authorized to access this page."
+        redirect_to root_path
+      end
     end
 end
