@@ -1,13 +1,11 @@
 class BooksController < ApplicationController
   before_action :authenticate_user!, except: %i[ index show ]
-  before_action :require_non_admin, only: %i[ my_books ]
   before_action :set_book, only: %i[ show edit update destroy ]
   before_action :require_admin, only: %i[ update destroy create new edit ]
 
   # GET /books or /books.json
   def index
     @books = Book.all
-    @issue_requests = IssuedBook.where(user_id: current_user.id) if user_signed_in?
     @books = @books.search(params[:query]) if params[:query].present?
     @books = @books.order(created_at: :asc)
   end
@@ -63,17 +61,6 @@ class BooksController < ApplicationController
     end
   end
 
-  def my_books
-    @books = 
-    @return_requests = ReturnedBook.where(user_id: current_user.id)
-    
-    if params[:query].present?
-      @books = @books.search(params[:query])
-    end
-    
-    @books = @books.order(created_at: :asc)
-  end
-
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_book
@@ -82,7 +69,7 @@ class BooksController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def book_params
-      params.expect(book: [ :user_id, :author_name, :book_name, :image_url ])
+      params.expect(book: [ :author_name, :book_name, :image_url, :total_quantity ])
     end
 
     def require_non_admin

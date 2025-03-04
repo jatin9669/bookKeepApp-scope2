@@ -1,7 +1,8 @@
 Rails.application.routes.draw do
   post "issued_books/issue_book/:id", to: "issued_books#issue_book", as: "issue_book"
   post "returned_books/return_book/:id", to: "returned_books#return_book", as: "return_book"
-  get "books/my_books", to: "books#my_books", as: "my_books"
+  get "borrowed_books/my_books", to: "borrowed_books#my_books", as: "my_books"
+  resources :borrowed_books
   resources :issued_books
   resources :returned_books
   resources :books

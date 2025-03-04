@@ -1,7 +1,7 @@
 class ReturnedBooksController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_admin
-  before_action :set_returned_book, only: %i[ show edit update destroy ]
+  before_action :require_admin, only: %i[ index destroy ]
+  before_action :set_returned_book, only: %i[ destroy ]
 
   # GET /returned_books or /returned_books.json
   def index
@@ -13,19 +13,6 @@ class ReturnedBooksController < ApplicationController
     end
     
     @returned_books = @returned_books.order(created_at: :asc)
-  end
-
-  # GET /returned_books/1 or /returned_books/1.json
-  def show
-  end
-
-  # GET /returned_books/new
-  def new
-    @returned_book = ReturnedBook.new
-  end
-
-  # GET /returned_books/1/edit
-  def edit
   end
 
   # POST /returned_books or /returned_books.json
@@ -45,20 +32,6 @@ class ReturnedBooksController < ApplicationController
     end
   end
   
-
-  # PATCH/PUT /returned_books/1 or /returned_books/1.json
-  def update
-    respond_to do |format|
-      if @returned_book.update(returned_book_params)
-        format.html { redirect_to @returned_book, notice: "Returned book was successfully updated." }
-        format.json { render :show, status: :ok, location: @returned_book }
-      else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @returned_book.errors, status: :unprocessable_entity }
-      end
-    end
-  end
-
   def return_book
     @returned_book = ReturnedBook.find(params.expect(:id))
     @returned_book.destroy!

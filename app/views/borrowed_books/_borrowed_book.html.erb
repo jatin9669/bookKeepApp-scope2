@@ -26,8 +26,8 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
       </svg>
     </div>
-    <h2 class="text-xl font-bold text-red-600 my-2 line-clamp-1 group-hover:line-clamp-none transition-all duration-200">
-      Only <%= book.total_quantity %> left!!
+    <h2 class="text-xl font-bold text-green-600 my-2 line-clamp-1 group-hover:line-clamp-none transition-all duration-200">
+      You have <%= borrowed_book.quantity%> book<%= borrowed_book.quantity > 1 ? "s" : "" %> left!!
     </h2>
   </div>
 <% end %>

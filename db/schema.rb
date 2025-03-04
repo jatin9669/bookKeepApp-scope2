@@ -10,14 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_01_123918) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_03_095352) do
   create_table "books", force: :cascade do |t|
-    t.integer "user_id"
     t.string "author_name"
     t.string "book_name"
     t.string "image_url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "total_quantity", default: 0
   end
 
   create_table "borrowed_books", force: :cascade do |t|
@@ -33,6 +33,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_01_123918) do
     t.integer "book_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "quantity", default: 1
     t.index ["user_id", "book_id"], name: "index_issued_books_on_user_id_and_book_id", unique: true
   end
 
@@ -41,6 +42,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_01_123918) do
     t.integer "book_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "quantity", default: 1
     t.index ["user_id", "book_id"], name: "index_returned_books_on_user_id_and_book_id", unique: true
   end
 
@@ -64,11 +66,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_01_123918) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
-  add_foreign_key "books", "users", on_delete: :nullify
-  add_foreign_key "borrowed_books", "books", on_delete: :nullify
-  add_foreign_key "borrowed_books", "users", on_delete: :nullify
+  add_foreign_key "borrowed_books", "books", on_delete: :cascade
+  add_foreign_key "borrowed_books", "users", on_delete: :cascade
   add_foreign_key "issued_books", "books", on_delete: :nullify
-  add_foreign_key "issued_books", "users", on_delete: :nullify
+  add_foreign_key "issued_books", "users", on_delete: :cascade
   add_foreign_key "returned_books", "books", on_delete: :nullify
-  add_foreign_key "returned_books", "users", on_delete: :nullify
+  add_foreign_key "returned_books", "users", on_delete: :cascade
 end

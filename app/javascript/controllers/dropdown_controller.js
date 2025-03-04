@@ -12,8 +12,7 @@ export default class extends Controller {
     document.removeEventListener('click', this.closeIfClickedOutside.bind(this))
   }
 
-  toggle(event) {
-    event.stopPropagation()
+  toggle() {
     this.menuTarget.classList.toggle('hidden')
   }
 

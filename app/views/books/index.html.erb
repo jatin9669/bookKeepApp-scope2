@@ -17,7 +17,7 @@
   <div id="books" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
     <% if @books.any? %>
       <% @books.each do |book| %>
-        <div class="group bg-white rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 <%= 'opacity-75' if ((book.user_id.present? && current_user && !current_user.is_admin?) || (@issue_requests.present? && @issue_requests.pluck(:book_id).include?(book.id))) %>">
+        <div class="group bg-white rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 h-[100%] <%= 'opacity-75' if ((current_user && !current_user.is_admin? && book.total_quantity == 0)) %>">
           <%= render book %>
           
           <% if user_signed_in? %>
@@ -43,34 +43,31 @@
                   <% end %>
                 </div>
               <% elsif user_signed_in? && !current_user.is_admin? %>
-                <% if book.user_id.present? && book.user_id == current_user.id %>
-                  <button disabled class="w-full px-4 py-2.5 bg-green-400 text-white font-medium rounded-md cursor-not-allowed flex items-center justify-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                    You have this book
-                  </button>
-                <% elsif book.user_id.present? %>
+                <% if book.total_quantity.present? && book.total_quantity == 0 %>
                   <button disabled class="w-full px-4 py-2.5 bg-gray-400 text-white font-medium rounded-md cursor-not-allowed">
                     Not Available
                   </button>
-                <% elsif @issue_requests.pluck(:book_id).include?(book.id) %>
-                  <button disabled class="w-full px-4 py-2.5 bg-yellow-400 text-white font-medium rounded-md cursor-not-allowed flex items-center justify-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    Issue Requested
-                  </button>
                 <% else %>
-                  <%= button_to issued_books_path, 
-                      params: { issued_book: { user_id: current_user.id, book_id: book.id } },
-                      method: :post,
-                      class: "w-full px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-md transition duration-200 flex items-center justify-center cursor-pointer" do %>
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                  <div class="to-be-shown-<%= book.id %> hidden flex items-center justify-center">
+                    <button 
+                        onclick="decrementQuantity(<%= book.id %>, <%= book.total_quantity %>)" 
+                        class="decrement-button-<%= book.id %> 
+                               px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-md transition duration-200 
+                               disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-200"> - </button>
+                    <span class="counter-<%= book.id %> px-4 py-2.5 bg-gray-100 text-black font-medium rounded-md transition duration-200"> 1 </span>
+                    <button 
+                        onclick="incrementQuantity(<%= book.id %>, <%= book.total_quantity %>)" 
+                        class="increment-button-<%= book.id %> 
+                               px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-md transition duration-200 
+                               disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-200"> + </button>
+                  </div>
+                  <button onclick="handleRequestToBorrow(<%= book.id %>, <%= book.total_quantity %>)" class="to-be-hidden-<%= book.id %> w-full px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-md transition duration-200 flex items-center justify-center cursor-pointer"> Request to borrow </button>
+                  <button class="hidden mt-2 to-be-shown-<%= book.id %> w-full px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white font-medium rounded-md transition duration-200 flex items-center justify-center cursor-pointer" onclick="handleConfirmPurchase(<%= book.id %>, <%= current_user.id %>)">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l5 5L20 7"/>
                     </svg>
-                    Request to borrow
-                  <% end %>
+                    Confirm Purchase 
+                  </button>
                 <% end %>
               <% end %>
             </div>
@@ -90,3 +87,88 @@
     <% end %>
   </div>
 </div>
+
+<script>
+  let quantity = {};
+
+  function incrementQuantity(bookId, totalQuantity) {
+    const decrementButton = document.querySelector('.decrement-button-'+bookId);
+    decrementButton.disabled = false;
+    quantity[bookId]=quantity[bookId]+1||1;
+    document.querySelector('.counter-'+bookId).textContent = quantity[bookId];
+    if (quantity[bookId] == totalQuantity) {
+        const incrementButton = document.querySelector('.increment-button-'+bookId);
+        incrementButton.disabled = true;
+    }
+  }
+  
+  function decrementQuantity(bookId, totalQuantity) {
+    const incrementButton = document.querySelector('.increment-button-'+bookId);
+      incrementButton.disabled = false;
+    quantity[bookId]=quantity[bookId]-1||1;
+    document.querySelector('.counter-'+bookId).textContent = quantity[bookId];
+    if (quantity[bookId] == 1) {
+        const decrementButton = document.querySelector('.decrement-button-'+bookId);
+        decrementButton.disabled = true;
+    }
+  }
+
+  function handleRequestToBorrow(bookId, totalQuantity){
+    const requestToBorrowButton = document.querySelector('.to-be-hidden-'+bookId);
+    const confirmPurchaseButton = document.querySelectorAll('.to-be-shown-'+bookId);
+
+    requestToBorrowButton.classList.add('hidden');
+    confirmPurchaseButton.forEach(button => {
+      button.classList.remove('hidden');
+    });
+
+    quantity[bookId] = 1;
+
+    document.querySelector('.decrement-button-'+bookId).disabled = true;
+    if (totalQuantity == 1){
+      document.querySelector('.increment-button-'+bookId).disabled = true;
+    }
+  }
+
+  function handleConfirmPurchase(bookId,userId){
+    const requestToBorrowButton = document.querySelector('.to-be-hidden-'+bookId);
+    const confirmPurchaseButtons = document.querySelectorAll('.to-be-shown-'+bookId);
+
+    requestToBorrowButton.classList.remove('hidden');
+    confirmPurchaseButtons.forEach(button => {
+      button.classList.add('hidden');
+    });
+      const csrfTokenElement = document.querySelector("meta[name='csrf-token']");
+  if (!csrfTokenElement) {
+    console.error("CSRF token not found");
+    return;
+  }
+  
+  const csrfToken = csrfTokenElement.getAttribute("content");
+
+  fetch("/borrowed_books", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken, // Include CSRF token
+    },
+    body: JSON.stringify({
+      borrowed_book: {
+        book_id: bookId,
+        user_id: userId,
+        quantity: quantity[bookId] || 1
+      }
+    }),
+    credentials: "same-origin"
+  }).then(response => {
+    if (response.ok) {
+      alert("Book issued successfully!");
+      location.reload();
+    } else {
+      alert("Failed to issue book.");
+    }
+  }).catch(error => console.error("Error:", error));
+}
+
+  
+</script>
