@@ -5,11 +5,28 @@ class BooksController < ApplicationController
 
   # GET /books or /books.json
   def index
+  if user_signed_in? && !current_user.is_admin?
+    issued_books = IssuedBook.where(user_id: current_user.id)
     @books = Book.all
     @books = @books.search(params[:query]) if params[:query].present?
     @books = @books.order(created_at: :asc)
+
+    
+    # Adjust quantities without converting @books to an array
+    @books = @books.map do |book|
+      book.total_quantity -= issued_books.where(book_id: book.id).sum(:quantity)
+      book.total_quantity = 0 if book.total_quantity < 0
+      book
+    end
+  else
+    @books = Book.all
+    @books = @books.order(created_at: :asc)
+    @books = @books.search(params[:query]) if params[:query].present?
   end
 
+end
+
+  
   # GET /books/1 or /books/1.json
   def show
   end
@@ -64,7 +81,7 @@ class BooksController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_book
-      @book = Book.find(params.expect(:id))
+      @book = Book.find(params[:id])
     end
 
     # Only allow a list of trusted parameters through.

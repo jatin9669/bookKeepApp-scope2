@@ -40,6 +40,12 @@
                     class: "text-white hover:text-indigo-200 px-3 py-2 rounded-md text-sm font-medium transition duration-150" %>
               <% end %>
             </div>
+            <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+              <% if user_signed_in? && !current_user.is_admin? %>
+                <%= link_to "Request Return", request_return_path, 
+                    class: "text-white hover:text-indigo-200 px-3 py-2 rounded-md text-sm font-medium transition duration-150" %>
+              <% end %>
+            </div>
           </div>
 
           <!-- Search Bar -->
@@ -166,3 +172,159 @@
     </main>
   </body>
 </html>
+
+<script>
+
+  function handleRequestToBorrow(bookId, totalQuantity){
+    const requestToBorrowButton = document.querySelector('.to-be-hidden-'+bookId);
+    const confirmPurchaseButton = document.querySelectorAll('.to-be-shown-'+bookId);
+
+    requestToBorrowButton.classList.add('hidden');
+    confirmPurchaseButton.forEach(button => {
+      button.classList.remove('hidden');
+    });
+
+    borrowQuantity[bookId] = 1;
+
+    document.querySelector('.decrement-button-'+bookId).disabled = true;
+    if (totalQuantity == 1){
+      document.querySelector('.increment-button-'+bookId).disabled = true;
+    }
+  }
+
+  function handleConfirmPurchase(bookId,userId){
+    const requestToBorrowButton = document.querySelector('.to-be-hidden-'+bookId);
+    const confirmPurchaseButtons = document.querySelectorAll('.to-be-shown-'+bookId);
+
+    requestToBorrowButton.classList.remove('hidden');
+    confirmPurchaseButtons.forEach(button => {
+      button.classList.add('hidden');
+    });
+    
+    const csrfTokenElement = document.querySelector("meta[name='csrf-token']");
+    if (!csrfTokenElement) {
+      console.error("CSRF token not found");
+      return;
+    }
+    
+    const csrfToken = csrfTokenElement.getAttribute("content");
+
+    fetch("/issued_books/issue_book", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken,
+      },
+      body: JSON.stringify({
+        issued_book: {
+          book_id: bookId,
+          user_id: userId,
+          quantity: borrowQuantity[bookId] || 1
+        }
+      }),
+      credentials: "same-origin"
+    })
+    .then(response => response.json())  // Parse JSON response
+    .then(data => {
+      window.location.href = "/books";
+    })
+    .catch(error => console.error("Error:", error));
+  }
+
+  function handleConfirmReturn(bookId, borrowedBookId) {
+    const csrfTokenElement = document.querySelector("meta[name='csrf-token']");
+    if (!csrfTokenElement) {
+        console.error("CSRF token not found");
+        return;
+    }
+    
+    const csrfToken = csrfTokenElement.getAttribute("content");
+
+    fetch("/returned_books/request_return_book", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": csrfToken,
+        },
+        body: JSON.stringify({
+            returned_book: {
+                borrowed_book_id: borrowedBookId,
+                quantity: returnQuantity[bookId] || 1
+            }
+        }),
+        credentials: "same-origin"
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload(); // Redirect on success
+        } else {
+            console.error("Failed to request return.");
+        }
+    })
+    .catch(error => console.error("Error:", error));
+  }
+
+
+  function incrementQuantity(bookId, totalQuantity) {
+    const decrementButton = document.querySelector('.decrement-button-'+bookId);
+    decrementButton.disabled = false;
+    borrowQuantity[bookId]=borrowQuantity[bookId]+1 || 1;
+    document.querySelector('.counter-'+bookId).textContent = borrowQuantity[bookId];
+    if (borrowQuantity[bookId] == totalQuantity) {
+        const incrementButton = document.querySelector('.increment-button-'+bookId);
+        incrementButton.disabled = true;
+    }
+  }
+  
+  function decrementQuantity(bookId) {
+    const incrementButton = document.querySelector('.increment-button-'+bookId);
+    incrementButton.disabled = false;
+    borrowQuantity[bookId]=borrowQuantity[bookId]-1 ||1;
+    document.querySelector('.counter-'+bookId).textContent = borrowQuantity[bookId];
+    if (borrowQuantity[bookId] == 1) {
+        const decrementButton = document.querySelector('.decrement-button-'+bookId);
+        decrementButton.disabled = true;
+    }
+  }
+
+  function incrementReturnQuantity(bookId, totalQuantity) {
+    const decrementButton = document.querySelector('.decrement-button-'+bookId);
+    decrementButton.disabled = false;
+    returnQuantity[bookId]=returnQuantity[bookId]+1||1;
+    document.querySelector('.counter-'+bookId).textContent = returnQuantity[bookId];
+    if (returnQuantity[bookId] == totalQuantity) {
+        const incrementButton = document.querySelector('.increment-button-'+bookId);
+        incrementButton.disabled = true;
+    }
+  }
+  
+  function decrementReturnQuantity(bookId) {
+    const incrementButton = document.querySelector('.increment-button-'+bookId);
+    incrementButton.disabled = false;
+    returnQuantity[bookId]=returnQuantity[bookId]-1||1;
+    document.querySelector('.counter-'+bookId).textContent = returnQuantity[bookId];
+    if (returnQuantity[bookId] == 1) {
+        const decrementButton = document.querySelector('.decrement-button-'+bookId);
+        decrementButton.disabled = true;
+    }
+  }
+
+  function handleRequestToReturn(bookId, totalQuantity){
+    const requestToBorrowButton = document.querySelector('.to-be-hidden-'+bookId);
+    const confirmPurchaseButton = document.querySelectorAll('.to-be-shown-'+bookId);
+
+    requestToBorrowButton.classList.add('hidden');
+    confirmPurchaseButton.forEach(button => {
+      button.classList.remove('hidden');
+    });
+
+    returnQuantity[bookId] = 1;
+
+    document.querySelector('.decrement-button-'+bookId).disabled = true;
+    if (totalQuantity == 1){
+      document.querySelector('.increment-button-'+bookId).disabled = true;
+    }
+  }  
+  
+</script>

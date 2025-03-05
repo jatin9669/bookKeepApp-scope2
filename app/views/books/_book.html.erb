@@ -26,8 +26,14 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
       </svg>
     </div>
-    <h2 class="text-xl font-bold text-red-600 my-2 line-clamp-1 group-hover:line-clamp-none transition-all duration-200">
-      Only <%= book.total_quantity %> left!!
-    </h2>
+    <% if user_signed_in? && !current_user.is_admin? %>
+      <h2 class="text-xl font-bold text-red-600 my-2 line-clamp-1 group-hover:line-clamp-none transition-all duration-200">
+        <%=book.total_quantity==0?"":"Only"%> <%= book.total_quantity<0?"0":book.total_quantity %> book<%=book.total_quantity<=1?"":"s"%> left!!
+      </h2>
+      <% elsif user_signed_in? && current_user.is_admin? %>
+        <h2 class="text-xl font-bold text-red-600 my-2 line-clamp-1 group-hover:line-clamp-none transition-all duration-200">
+          <%= book.total_quantity %> book<%=book.total_quantity<=1?"":"s"%> left!!
+        </h2>
+    <% end %>
   </div>
 <% end %>

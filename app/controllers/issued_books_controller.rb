@@ -26,10 +26,12 @@ class IssuedBooksController < ApplicationController
       @issued_book = IssuedBook.new(issued_book_params)
     
     if @issued_book.save
-      redirect_to books_path, notice: 'Book request submitted successfully.'
+      flash[:alert] = "Book issued successfully!"
+      redirect_to books_path
     else
-        redirect_to books_path, alert: 'Unable to request book.'
-      end
+      flash[:alert] = "Failed to issue book."
+      redirect_to books_path
+    end
     end
   end
 
@@ -44,17 +46,38 @@ class IssuedBooksController < ApplicationController
   end
 
   def issue_book
-    @issued_book = IssuedBook.find(params.expect(:id))
-    @issued_book.destroy!
-    @book = Book.find(@issued_book.book_id)
-    if @book.user_id.present?
-      alert = "Book already issued to another user."
-      redirect_to issued_books_path, alert: alert
+    @issued_book = IssuedBook.new(issued_book_params)
+  
+    if @issued_book.save
+      flash[:notice] = "Book issued successfully."
+      render json: { success: true }
     else
-      @book.user_id = @issued_book.user_id
+      flash[:alert] = "Failed to issue book."
+      render json: { success: false }
+    end
+  end
+  
+
+  def approve_issue
+    @issued_book = IssuedBook.find(params.expect(:id))
+    @book = Book.find(@issued_book.book_id)
+    if @book.total_quantity < @issued_book.quantity
+      flash[:alert] = 'Not enough books in stock.'
+      redirect_to issued_books_path
+      @issued_book.destroy!
+    else
+      @book.total_quantity -= @issued_book.quantity
       @book.save!
-      notice = "Book issued successfully."
-      redirect_to issued_books_path, notice: notice
+      existing_record = BorrowedBook.find_by(user_id: @issued_book.user_id, book_id: @issued_book.book_id)
+      if existing_record
+        existing_record.quantity += @issued_book.quantity
+        existing_record.save!
+      else
+        @borrowed_book = BorrowedBook.new(book_id: @issued_book.book_id, user_id: @issued_book.user_id, quantity: @issued_book.quantity)
+        @borrowed_book.save!
+      end
+      @issued_book.destroy!
+      redirect_to issued_books_path, notice: 'Book issued successfully.'
     end
   end
 
@@ -66,7 +89,7 @@ class IssuedBooksController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def issued_book_params
-      params.require(:issued_book).permit(:book_id, :user_id)
+      params.require(:issued_book).permit(:book_id, :user_id, :quantity)
     end
 
     def require_admin

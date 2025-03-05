@@ -5,11 +5,12 @@ class ReturnedBooksController < ApplicationController
 
   # GET /returned_books or /returned_books.json
   def index
-    @returned_books = ReturnedBook.includes(:book, :user)
+    @returned_books = ReturnedBook.all
     
     if params[:query].present?
       book_ids = Book.search(params[:query]).pluck(:id)
-      @returned_books = @returned_books.where(book_id: book_ids)
+      borrowed_books_ids = BorrowedBook.where(book_id: book_ids).pluck(:id)
+      @returned_books = @returned_books.where(borrowed_book_id: borrowed_books_ids)
     end
     
     @returned_books = @returned_books.order(created_at: :asc)
@@ -17,29 +18,48 @@ class ReturnedBooksController < ApplicationController
 
   # POST /returned_books or /returned_books.json
   def create
-    existing_record = ReturnedBook.find_by(user_id: returned_book_params[:user_id], book_id: returned_book_params[:book_id])
-  
+    @returned_book = ReturnedBook.new(returned_book_params)
+
+    if @returned_book.save
+      flash[:notice] = 'Book return request submitted successfully.'
+    else
+      flash[:alert] = 'Unable to request book.'
+    end
+  end
+
+  def request_return_book
+    existing_record = ReturnedBook.find_by(borrowed_book_id: returned_book_params[:borrowed_book_id])
     if existing_record
-      redirect_to my_books_path, alert: 'You have already requested a return for this book.'
+      existing_record.quantity += returned_book_params[:quantity]
+      existing_record.save!
+      flash[:notice] = 'Book return request submitted successfully.'
+      render json: { success: true }
     else
       @returned_book = ReturnedBook.new(returned_book_params)
-  
       if @returned_book.save
-        redirect_to my_books_path, notice: 'Book return request submitted successfully.'
+        flash[:notice] = 'Book return request submitted successfully.'
+        render json: { success: true }
       else
-        redirect_to my_books_path, alert: 'Unable to request book.'
+        flash[:alert] = 'Unable to request book.'
+        render json: { success: false }
       end
     end
   end
-  
-  def return_book
+
+  def approve_return_book
     @returned_book = ReturnedBook.find(params.expect(:id))
-    @returned_book.destroy!
-    @book = Book.find(@returned_book.book_id)
-    @book.user_id = nil
+    @borrowed_book = BorrowedBook.find(@returned_book.borrowed_book_id)
+    @book = Book.find(@borrowed_book.book_id)
+    @book.total_quantity += @returned_book.quantity
     @book.save!
-    notice = "Book return request sent successfully."
-    redirect_to returned_books_path, notice: notice
+    @borrowed_book.quantity -= @returned_book.quantity
+    if @borrowed_book.quantity == 0
+      @borrowed_book.destroy!
+    else
+      @borrowed_book.save!
+    end
+    @returned_book.destroy!
+    redirect_to "/request_return", notice: 'Book return request approved successfully.'
   end
 
   # DELETE /returned_books/1 or /returned_books/1.json
@@ -60,7 +80,7 @@ class ReturnedBooksController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def returned_book_params
-      params.expect(returned_book: [ :user_id, :book_id ])
+      params.require(:returned_book).permit(:borrowed_book_id, :quantity)
     end
 
     def require_admin

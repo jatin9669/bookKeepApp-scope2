@@ -1,11 +1,14 @@
 Rails.application.routes.draw do
-  post "issued_books/issue_book/:id", to: "issued_books#issue_book", as: "issue_book"
-  post "returned_books/return_book/:id", to: "returned_books#return_book", as: "return_book"
+  post "returned_books/request_return_book", to: "returned_books#request_return_book", as: "request_return_book"
+  post "issued_books/issue_book", to: "issued_books#issue_book", as: "issue_book"
+  post "issued_books/approve_issue/:id", to: "issued_books#approve_issue", as: "approve_issue"
   get "borrowed_books/my_books", to: "borrowed_books#my_books", as: "my_books"
+  get "borrowed_books/request_return", to: "borrowed_books#request_return", as: "request_return"
+  post "returned_books/approve_return_book/:id", to: "returned_books#approve_return_book", as: "approve_return_book"
+  resources :books
   resources :borrowed_books
   resources :issued_books
   resources :returned_books
-  resources :books
   devise_for :users
   root "books#index"
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

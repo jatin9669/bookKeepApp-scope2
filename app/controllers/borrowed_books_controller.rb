@@ -22,7 +22,7 @@ class BorrowedBooksController < ApplicationController
   # POST /borrowed_books or /borrowed_books.json
   def create
     existing_record = BorrowedBook.find_by(user_id: borrowed_book_params[:user_id], book_id: borrowed_book_params[:book_id])
-    # puts "existing_record: #{existing_record}"
+    flash[:notice] = 'Book request submitted successfully.'
 
     if existing_record
       existing_record.quantity += Integer(borrowed_book_params[:quantity])
@@ -31,7 +31,6 @@ class BorrowedBooksController < ApplicationController
       @borrowed_book = BorrowedBook.new(borrowed_book_params)
       @borrowed_book.save!
     end
-    flash[:notice] = 'Book request submitted successfully.'
     redirect_to books_path
   end
 
@@ -60,12 +59,27 @@ class BorrowedBooksController < ApplicationController
 
   def my_books
     @borrowed_books = BorrowedBook.where(user_id: current_user.id)
-    
+  
     if params[:query].present?
-      @borrowed_books = @borrowed_books.search(params[:query])
+      book_ids = Book.search(params[:query]).pluck(:id)
+      @borrowed_books = @borrowed_books.where(book_id: book_ids)
     end
-    
+  
     @borrowed_books = @borrowed_books.order(created_at: :asc)
+  end
+  
+
+  def request_return
+    @borrowed_books = BorrowedBook.where(user_id: current_user.id)
+    @return_book = ReturnedBook.all
+    if params[:query].present?
+      book_ids = Book.search(params[:query]).pluck(:id)
+      @borrowed_books = @borrowed_books.where(book_id: book_ids)
+    end
+    @borrowed_books = @borrowed_books.map do |book|
+      book.quantity = book.quantity - @return_book.where(borrowed_book_id: book.id).sum(:quantity)
+      book
+    end
   end
 
   private

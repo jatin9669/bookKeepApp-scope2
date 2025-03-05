@@ -18,7 +18,7 @@
     <% if @books.any? %>
       <% @books.each do |book| %>
         <div class="group bg-white rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 h-[100%] <%= 'opacity-75' if ((current_user && !current_user.is_admin? && book.total_quantity == 0)) %>">
-          <%= render book %>
+          <%= render 'book', book: book %>
           
           <% if user_signed_in? %>
             <div class="p-4 border-t border-gray-100 bg-gray-50 rounded-b-lg">
@@ -43,20 +43,20 @@
                   <% end %>
                 </div>
               <% elsif user_signed_in? && !current_user.is_admin? %>
-                <% if book.total_quantity.present? && book.total_quantity == 0 %>
+                <% if book.total_quantity.present? && (book.total_quantity == 0) %>
                   <button disabled class="w-full px-4 py-2.5 bg-gray-400 text-white font-medium rounded-md cursor-not-allowed">
                     Not Available
                   </button>
                 <% else %>
                   <div class="to-be-shown-<%= book.id %> hidden flex items-center justify-center">
                     <button 
-                        onclick="decrementQuantity(<%= book.id %>, <%= book.total_quantity %>)" 
+                        onclick="decrementQuantity(<%= book.id %>)" 
                         class="decrement-button-<%= book.id %> 
                                px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-md transition duration-200 
                                disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-200"> - </button>
                     <span class="counter-<%= book.id %> px-4 py-2.5 bg-gray-100 text-black font-medium rounded-md transition duration-200"> 1 </span>
                     <button 
-                        onclick="incrementQuantity(<%= book.id %>, <%= book.total_quantity %>)" 
+                        onclick="incrementQuantity(<%= book.id %>, <%= book.total_quantity  %>)" 
                         class="increment-button-<%= book.id %> 
                                px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-md transition duration-200 
                                disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-200"> + </button>
@@ -88,87 +88,3 @@
   </div>
 </div>
 
-<script>
-  let quantity = {};
-
-  function incrementQuantity(bookId, totalQuantity) {
-    const decrementButton = document.querySelector('.decrement-button-'+bookId);
-    decrementButton.disabled = false;
-    quantity[bookId]=quantity[bookId]+1||1;
-    document.querySelector('.counter-'+bookId).textContent = quantity[bookId];
-    if (quantity[bookId] == totalQuantity) {
-        const incrementButton = document.querySelector('.increment-button-'+bookId);
-        incrementButton.disabled = true;
-    }
-  }
-  
-  function decrementQuantity(bookId, totalQuantity) {
-    const incrementButton = document.querySelector('.increment-button-'+bookId);
-      incrementButton.disabled = false;
-    quantity[bookId]=quantity[bookId]-1||1;
-    document.querySelector('.counter-'+bookId).textContent = quantity[bookId];
-    if (quantity[bookId] == 1) {
-        const decrementButton = document.querySelector('.decrement-button-'+bookId);
-        decrementButton.disabled = true;
-    }
-  }
-
-  function handleRequestToBorrow(bookId, totalQuantity){
-    const requestToBorrowButton = document.querySelector('.to-be-hidden-'+bookId);
-    const confirmPurchaseButton = document.querySelectorAll('.to-be-shown-'+bookId);
-
-    requestToBorrowButton.classList.add('hidden');
-    confirmPurchaseButton.forEach(button => {
-      button.classList.remove('hidden');
-    });
-
-    quantity[bookId] = 1;
-
-    document.querySelector('.decrement-button-'+bookId).disabled = true;
-    if (totalQuantity == 1){
-      document.querySelector('.increment-button-'+bookId).disabled = true;
-    }
-  }
-
-  function handleConfirmPurchase(bookId,userId){
-    const requestToBorrowButton = document.querySelector('.to-be-hidden-'+bookId);
-    const confirmPurchaseButtons = document.querySelectorAll('.to-be-shown-'+bookId);
-
-    requestToBorrowButton.classList.remove('hidden');
-    confirmPurchaseButtons.forEach(button => {
-      button.classList.add('hidden');
-    });
-      const csrfTokenElement = document.querySelector("meta[name='csrf-token']");
-  if (!csrfTokenElement) {
-    console.error("CSRF token not found");
-    return;
-  }
-  
-  const csrfToken = csrfTokenElement.getAttribute("content");
-
-  fetch("/borrowed_books", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRF-Token": csrfToken, // Include CSRF token
-    },
-    body: JSON.stringify({
-      borrowed_book: {
-        book_id: bookId,
-        user_id: userId,
-        quantity: quantity[bookId] || 1
-      }
-    }),
-    credentials: "same-origin"
-  }).then(response => {
-    if (response.ok) {
-      alert("Book issued successfully!");
-      location.reload();
-    } else {
-      alert("Failed to issue book.");
-    }
-  }).catch(error => console.error("Error:", error));
-}
-
-  
-</script>

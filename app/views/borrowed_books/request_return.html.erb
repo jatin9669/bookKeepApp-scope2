@@ -1,0 +1,57 @@
+<% content_for :title, "Request Return" %>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center mb-8">
+    <h1 class="font-bold text-4xl text-gray-900">Request Return</h1>
+  </div>
+
+  <div id="books" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+    <% if @borrowed_books.any? %>
+      <% @borrowed_books.each do |borrowed_book| %>
+        <% next if borrowed_book.quantity == 0 %>
+        <div class="group bg-white rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300">
+          <%= render 'borrowed_book', book: borrowed_book.book, borrowed_book: borrowed_book %>
+          <div class="p-4 border-t border-gray-100 bg-gray-50 rounded-b-lg">
+            <button onclick="handleRequestToReturn(<%= borrowed_book.book_id %>, <%= borrowed_book.quantity %>)" class="to-be-hidden-<%= borrowed_book.book_id %> w-full px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-md transition duration-200 flex items-center justify-center cursor-pointer"> 
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3"/>
+              </svg>
+              Request to Return 
+            </button>
+
+            <div class="hidden mt-2 to-be-shown-<%= borrowed_book.book_id %> w-full bg-gray-100 p-2 rounded-md flex items-center justify-center">
+              <button 
+                onclick="decrementReturnQuantity(<%= borrowed_book.book_id %>)" 
+                class="decrement-button-<%= borrowed_book.book_id %> 
+                       px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-md transition duration-200 
+                       disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-200"> - </button>
+              <span class="counter-<%= borrowed_book.book_id %> px-4 py-2.5 text-black font-medium"> 1 </span>
+              <button 
+                onclick="incrementReturnQuantity(<%= borrowed_book.book_id %>, <%= borrowed_book.quantity %>)" 
+                class="increment-button-<%= borrowed_book.book_id %> 
+                       px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-md transition duration-200 
+                       disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-200"> + </button>
+            </div>
+
+            <button class="hidden mt-2 to-be-shown-<%= borrowed_book.book_id %> w-full px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white font-medium rounded-md transition duration-200 flex items-center justify-center cursor-pointer" onclick="handleConfirmReturn(<%= borrowed_book.book_id %>, <%= borrowed_book.id %>)">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l5 5L20 7"/>
+              </svg>
+              Confirm Return 
+            </button>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="col-span-full">
+        <div class="text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+          <h3 class="mt-2 text-lg font-medium text-gray-900">No books found</h3>
+          <p class="mt-1 text-gray-500">You haven't borrowed any books yet.</p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
