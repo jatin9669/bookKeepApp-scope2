@@ -4,4 +4,5 @@ class IssuedBook < ApplicationRecord
 
   validates :user_id, presence: true
   validates :book_id, presence: true
+  validates :quantity, presence: true
 end

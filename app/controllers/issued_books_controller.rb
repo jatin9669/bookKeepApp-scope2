@@ -17,13 +17,7 @@ class IssuedBooksController < ApplicationController
 
   # POST /issued_books or /issued_books.json
   def create
-    existing_record = IssuedBook.find_by(user_id: issued_book_params[:user_id], book_id: issued_book_params[:book_id])
-
-    if existing_record
-      flash[:alert] = 'You have already requested this book.'
-      redirect_to books_path
-    else
-      @issued_book = IssuedBook.new(issued_book_params)
+    @issued_book = IssuedBook.new(issued_book_params)
     
     if @issued_book.save
       flash[:alert] = "Book issued successfully!"
@@ -31,7 +25,6 @@ class IssuedBooksController < ApplicationController
     else
       flash[:alert] = "Failed to issue book."
       redirect_to books_path
-    end
     end
   end
 

@@ -1,13 +1,9 @@
 class BorrowedBooksController < ApplicationController
-  before_action :set_borrowed_book, only: %i[ show edit update destroy ]
+  before_action :set_borrowed_book, only: %i[ show edit destroy ]
 
   # GET /borrowed_books or /borrowed_books.json
   def index
     @borrowed_books = BorrowedBook.all
-  end
-
-  # GET /borrowed_books/1 or /borrowed_books/1.json
-  def show
   end
 
   # GET /borrowed_books/new
@@ -15,36 +11,21 @@ class BorrowedBooksController < ApplicationController
     @borrowed_book = BorrowedBook.new
   end
 
-  # GET /borrowed_books/1/edit
-  def edit
-  end
-
   # POST /borrowed_books or /borrowed_books.json
   def create
     existing_record = BorrowedBook.find_by(user_id: borrowed_book_params[:user_id], book_id: borrowed_book_params[:book_id])
-    flash[:notice] = 'Book request submitted successfully.'
-
+    
     if existing_record
       existing_record.quantity += Integer(borrowed_book_params[:quantity])
       existing_record.save!
+      flash[:notice] = 'Book request updated successfully.'
     else
       @borrowed_book = BorrowedBook.new(borrowed_book_params)
       @borrowed_book.save!
+      flash[:notice] = 'Book request submitted successfully.'
     end
+    
     redirect_to books_path
-  end
-
-  # PATCH/PUT /borrowed_books/1 or /borrowed_books/1.json
-  def update
-    respond_to do |format|
-      if @borrowed_book.update(borrowed_book_params)
-        format.html { redirect_to @borrowed_book, notice: "Borrowed book was successfully updated." }
-        format.json { render :show, status: :ok, location: @borrowed_book }
-      else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @borrowed_book.errors, status: :unprocessable_entity }
-      end
-    end
   end
 
   # DELETE /borrowed_books/1 or /borrowed_books/1.json
@@ -68,7 +49,6 @@ class BorrowedBooksController < ApplicationController
     @borrowed_books = @borrowed_books.order(created_at: :asc)
   end
   
-
   def request_return
     @borrowed_books = BorrowedBook.where(user_id: current_user.id)
     @return_book = ReturnedBook.all

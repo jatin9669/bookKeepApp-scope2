@@ -4,4 +4,5 @@ class ReturnedBook < ApplicationRecord
   has_one :user, through: :borrowed_book
 
   validates :borrowed_book_id, presence: true
+  validates :quantity, presence: true
 end

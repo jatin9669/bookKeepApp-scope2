@@ -30,7 +30,7 @@ class ReturnedBooksController < ApplicationController
   def request_return_book
     existing_record = ReturnedBook.find_by(borrowed_book_id: returned_book_params[:borrowed_book_id])
     if existing_record
-      existing_record.quantity += returned_book_params[:quantity]
+      existing_record.quantity += Integer(returned_book_params[:quantity])
       existing_record.save!
       flash[:notice] = 'Book return request submitted successfully.'
       render json: { success: true }

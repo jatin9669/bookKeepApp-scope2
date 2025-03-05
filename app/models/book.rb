@@ -1,8 +1,9 @@
 class Book < ApplicationRecord
   has_many :issued_books, dependent: :destroy
-  has_many :returned_books, dependent: :destroy
   has_many :borrowed_books, dependent: :destroy
   has_many :users, through: :issued_books
+  validates :book_name, presence: true
+  validates :total_quantity, presence: true
 
   def self.search(query)
     return all unless query.present?

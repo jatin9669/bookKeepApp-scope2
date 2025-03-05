@@ -23,7 +23,6 @@ class BooksController < ApplicationController
     @books = @books.order(created_at: :asc)
     @books = @books.search(params[:query]) if params[:query].present?
   end
-
 end
 
   
