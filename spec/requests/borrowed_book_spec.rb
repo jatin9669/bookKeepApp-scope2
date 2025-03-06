@@ -2,18 +2,26 @@ require 'rails_helper'
 
 RSpec.describe "/borrowed_books", type: :request do
   include Devise::Test::IntegrationHelpers
-  let(:user) { User.create(email: 'user@example.com',name: 'user', password: 'password', password_confirmation: 'password', is_admin: false) }
-  let(:book) { Book.create(book_name: 'Ruby Programming', author_name: 'John Doe', total_quantity: 5) }
-  let(:borrowed_book) { BorrowedBook.create(user: user, book: book, quantity: 1) }
+  let(:user) { create(:user) }
+  let(:admin) { create(:admin) }
+  let(:book) { create(:book1) }
+  let(:borrowed_book) { create(:borrowed_book, user: user, book: book) }
 
   before do
     sign_in user
   end
 
   describe "GET /index" do
-    it "returns a successful response" do
+    it "returns a successful response when user is not an admin" do
       get borrowed_books_path
       expect(response).to have_http_status(:ok)
+    end
+
+    it "redirects to root path when user is an admin" do
+      sign_in admin
+      get borrowed_books_path
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to eq("Admins dont have collections.")
     end
   end
 
@@ -47,6 +55,13 @@ RSpec.describe "/borrowed_books", type: :request do
       post borrowed_books_path, params: valid_attributes
       expect(response).to redirect_to(books_path)
     end
+
+    it "redirects to root path when user is an admin" do
+      sign_in admin
+      get borrowed_books_path
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to eq("Admins dont have collections.")
+    end
   end
 
   describe "DELETE /destroy" do
@@ -61,6 +76,13 @@ RSpec.describe "/borrowed_books", type: :request do
     it "redirects to borrowed_books_path" do
       delete borrowed_book_path(borrowed_book)
       expect(response).to redirect_to(borrowed_books_path)
+    end
+
+    it "redirects to root path when user is an admin" do
+      sign_in admin
+      delete borrowed_book_path(borrowed_book)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to eq("Admins dont have collections.")
     end
   end
 
@@ -83,6 +105,13 @@ RSpec.describe "/borrowed_books", type: :request do
         # Verify the response includes the book name
         expect(response.body).to include(book.book_name)
       end
+    end
+
+    it "redirects to root path when user is an admin" do
+      sign_in admin
+      get my_books_path
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to eq("Admins dont have collections.")
     end
   end
 
@@ -117,6 +146,13 @@ RSpec.describe "/borrowed_books", type: :request do
         # Verify the response includes the book name
         expect(response.body).to include(book.book_name)
       end
+    end
+
+    it "redirects to root path when user is an admin" do
+      sign_in admin
+      get request_return_path
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to eq("Admins dont have collections.")
     end
   end
 end

@@ -3,10 +3,10 @@ require 'rails_helper'
 RSpec.describe IssuedBooksController, type: :request do
   include Devise::Test::IntegrationHelpers
 
-  let(:admin) { User.create(email: 'admin@example.com', name: 'Admin', password: 'password', is_admin: true) }
-  let(:user) { User.create(email: 'user@example.com', name: 'User', password: 'password', is_admin: false) }
-  let(:book) { Book.create(book_name: 'Ruby Programming', author_name: 'John Doe', total_quantity: 10) }
-  let(:issued_book) { IssuedBook.create(user: user, book: book, quantity: 1) }
+  let(:admin) { create(:admin) }
+  let(:user) { create(:user) }
+  let(:book) { create(:book1, total_quantity: 10) }
+  let(:issued_book) { create(:issued_book, user:user, book:book) }
 
   before { sign_in admin }
 
@@ -19,13 +19,25 @@ RSpec.describe IssuedBooksController, type: :request do
     context "when search query is present" do
       it "filters issued books by search query" do
         # Create an issued book for the test
-        issued_book = IssuedBook.create!(user: user, book: book, quantity: 1)
+        issued_book = IssuedBook.create(user: user, book: book, quantity: 1)
         
         allow(Book).to receive(:search).with('Ruby').and_return([book])
         
         get issued_books_path, params: { query: 'Ruby' }
         
         expect(response.body).to include(book.book_name)
+      end
+    end
+
+    context "when user is not an admin" do
+      before do
+        sign_in user
+      end
+
+      it "redirects to root path" do
+        get issued_books_path
+        expect(response).to redirect_to(root_path)
+        expect(flash[:alert]).to eq("You are not authorized to access this page.")
       end
     end
   end
@@ -87,6 +99,17 @@ RSpec.describe IssuedBooksController, type: :request do
 
         expect(IssuedBook.exists?(issued_book.id)).to be_falsey
         expect(flash[:alert]).to eq("Not enough books in stock.")
+      end
+    end
+
+    context "when book is already borrowed" do
+      before { create(:borrowed_book, user: user, book: book) }
+
+      it "adds the book to the borrowed books and deletes the request" do
+        expect {
+          post approve_issue_path(issued_book)
+        }.to change { BorrowedBook.find_by(user_id: user.id, book_id: book.id).quantity }.by(1)
+        expect(IssuedBook.exists?(issued_book.id)).to be_falsey
       end
     end
   end

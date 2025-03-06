@@ -1,12 +1,10 @@
 require 'rails_helper'
 RSpec.describe "Books", type: :request do
   include Devise::Test::IntegrationHelpers
-  let(:admin) { User.create(email: 'admin@example.com', name: 'Admin', password: 'password', password_confirmation: 'password', is_admin: true) }
-  let(:user) { User.create(email: 'user@example.com', name: 'User', password: 'password', password_confirmation: 'password', is_admin: false) }
-  let!(:book) { Book.create(book_name: 'Ruby Programming', author_name: 'John Doe', total_quantity: 10) }
-  let(:book1) { Book.create!(book_name: 'Ruby Programming', total_quantity: 5) }
-  let(:book2) { Book.create!(book_name: 'JavaScript Basics', total_quantity: 3) }
-  let(:issued_book) { IssuedBook.create!(user: user, book: book1, quantity: 2) }
+  let(:admin) { create(:admin) }
+  let(:user) { create(:user) }
+  let!(:book) { create(:book1) }
+  let(:issued_book) { create(:issued_book, user: user, book: book, quantity: 2) }
 
   describe "GET /index" do
     context "when user is signed in and not an admin" do

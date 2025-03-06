@@ -11,7 +11,19 @@
 # a separate helper file that requires the additional dependencies and performs
 # the additional setup, and require it from the spec files that actually need
 # it.
-#
+require 'simplecov'
+
+SimpleCov.start 'rails' do
+  add_filter 'spec/'
+  add_filter 'bin/'
+  add_filter 'config/'
+  add_filter 'db/'
+  add_filter 'lib/'
+  add_filter 'public/'
+  add_filter 'vendor/'
+  
+end
+
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate

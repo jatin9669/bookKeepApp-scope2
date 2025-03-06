@@ -1,8 +1,8 @@
 require 'rails_helper'
 RSpec.describe Book, type: :model do
-  let(:book1) { Book.create(book_name: 'Ruby Programming', author_name: 'John Doe', total_quantity: 10) }
-  let(:book2) { Book.create(book_name: 'JavaScript Basics', author_name: 'Jane Smith', total_quantity: 5) }
-  let(:book3) { Book.create(book_name: 'Python Guide', author_name: 'Alice Brown', total_quantity: 0) }
+  let(:book1) { create(:book1) }
+  let(:book2) { create(:book2) }
+  let(:book3) { create(:book3) }
 
   describe 'associations' do
     it { should have_many(:issued_books).dependent(:destroy) }

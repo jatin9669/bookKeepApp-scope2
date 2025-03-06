@@ -1,5 +1,6 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require 'spec_helper'
+require 'factory_bot_rails'
 ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
 # Prevent database truncation if the environment is production
@@ -29,6 +30,8 @@ RSpec.configure do |config|
     end
     Devise.add_mapping(:user, { class_name: 'User' })
   end
+  # Include FactoryBot methods
+  config.include FactoryBot::Syntax::Methods
 end
 # Add additional requires below this line. Rails is not loaded until this point!
 

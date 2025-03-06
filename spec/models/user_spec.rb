@@ -15,8 +15,7 @@ RSpec.describe User, type: :model do
   end
 
   describe 'devise modules' do
-    let(:user) { User.create(email: 'test@example.com', password: 'password', password_confirmation: 'password') }  # Create a user instance
-
+    let(:user) { create(:user) }
     it 'includes the necessary devise modules' do
       expect(User.devise_modules).to include(:database_authenticatable, :registerable, :recoverable, :rememberable, :validatable)
     end

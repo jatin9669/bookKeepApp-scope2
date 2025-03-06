@@ -2,11 +2,12 @@ require 'rails_helper'
 
 RSpec.describe "/returned_books", type: :request do
   include Devise::Test::IntegrationHelpers
-  let(:user) { User.create!(email: 'user@example.com', name: 'user', password: 'password', password_confirmation: 'password', is_admin: false) }
-  let(:admin) { User.create!(email: 'admin@example.com', name: 'admin', password: 'password', password_confirmation: 'password', is_admin: true) }
-  let(:book) { Book.create!(book_name: 'Ruby Programming', author_name: 'John Doe', total_quantity: 5) }
-  let(:borrowed_book) { BorrowedBook.create!(user: user, book: book, quantity: 2) }
-  let(:returned_book) { ReturnedBook.create!(borrowed_book: borrowed_book, quantity: 1) }
+  let(:user) { create(:user) }
+  let(:admin) { create(:admin) }
+  let(:book) { create(:book1) }
+  let(:borrowed_book) { create(:borrowed_book, user: user, book: book, quantity: 2) }
+  let(:returned_book) { create(:returned_book, borrowed_book: borrowed_book, quantity: 1) }
+  let(:returned_book2) { create(:returned_book, borrowed_book: borrowed_book, quantity: 2) }
 
   describe "GET /index" do
     context "when user is admin" do
@@ -108,6 +109,13 @@ RSpec.describe "/returned_books", type: :request do
       expect(book.reload.total_quantity).to eq(6)
       expect(borrowed_book.reload.quantity).to eq(1)
       expect(ReturnedBook.exists?(returned_book.id)).to be_falsey
+    end
+
+    context "when the borrowed book quantity is 0" do
+      it "deletes the borrowed book" do
+        post approve_return_book_path(returned_book2)
+        expect(BorrowedBook.exists?(borrowed_book.id)).to be_falsey
+      end
     end
   end
 

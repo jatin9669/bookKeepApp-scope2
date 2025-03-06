@@ -88,13 +88,6 @@ end
       params.expect(book: [ :author_name, :book_name, :image_url, :total_quantity ])
     end
 
-    def require_non_admin
-      unless !current_user.is_admin?
-        flash[:alert] = "Admins dont have collections."
-        redirect_to root_path
-      end
-    end
-
     def require_admin
       unless current_user.is_admin?
         flash[:alert] = "You can not perform this action."

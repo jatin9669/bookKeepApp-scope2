@@ -1,6 +1,6 @@
 class BorrowedBooksController < ApplicationController
   before_action :set_borrowed_book, only: %i[ show edit destroy ]
-
+  before_action :require_non_admin, only: %i[ index new create destroy my_books request_return ]
   # GET /borrowed_books or /borrowed_books.json
   def index
     @borrowed_books = BorrowedBook.all
@@ -71,5 +71,12 @@ class BorrowedBooksController < ApplicationController
     # Only allow a list of trusted parameters through.
     def borrowed_book_params
       params.expect(borrowed_book: [ :user_id, :book_id, :quantity ])
+    end
+
+    def require_non_admin
+      unless !current_user.is_admin?
+        flash[:alert] = "Admins dont have collections."
+        redirect_to root_path
+      end
     end
 end
