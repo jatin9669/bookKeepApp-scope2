@@ -15,7 +15,7 @@ This is a Rails-based API application for managing passwords, built with Grape a
 
 ```bash
 git clone https://github.com/jatin9669/BKA-scope1
-cd scope1
+cd BKA-scope1
 ```
 
 ### Install Dependencies
