@@ -5,6 +5,9 @@ class BooksController < ApplicationController
 
   # GET /books or /books.json
   def index
+    # puts "jatin"
+    # puts current_user.email
+    # puts current_user.is_admin?
   if user_signed_in? && !current_user.is_admin?
     issued_books = IssuedBook.where(user_id: current_user.id)
     @books = Book.all

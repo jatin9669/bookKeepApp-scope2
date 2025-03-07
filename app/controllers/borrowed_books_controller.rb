@@ -1,4 +1,5 @@
 class BorrowedBooksController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_borrowed_book, only: %i[ show edit destroy ]
   before_action :require_non_admin, only: %i[ index new create destroy my_books request_return ]
   # GET /borrowed_books or /borrowed_books.json
