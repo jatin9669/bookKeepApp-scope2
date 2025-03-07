@@ -1,6 +1,6 @@
 # Password Manager API
 
-This is a Rails-based API application for managing passwords, built with Grape and Swagger for API documentation. It uses PostgreSQL as the database and includes JWT authentication with Devise.
+This is a Rails-based API application for managing passwords, built with Grape and Swagger for API documentation. It uses PostgreSQL as the database and authentication with Devise.
 
 ## Prerequisites
 
