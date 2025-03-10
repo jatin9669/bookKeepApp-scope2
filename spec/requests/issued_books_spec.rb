@@ -5,8 +5,8 @@ RSpec.describe IssuedBooksController, type: :request do
 
   let(:admin) { create(:admin) }
   let(:user) { create(:user) }
-  let(:book) { create(:book1, total_quantity: 10) }
-  let(:issued_book) { create(:issued_book, user:user, book:book) }
+  let(:book1) { create(:book1, total_quantity: 10) }
+  let(:issued_book) { create(:issued_book, user:user, book:book1) }
 
   before { sign_in admin }
 
@@ -19,13 +19,13 @@ RSpec.describe IssuedBooksController, type: :request do
     context "when search query is present" do
       it "filters issued books by search query" do
         # Create an issued book for the test
-        issued_book = IssuedBook.create(user: user, book: book, quantity: 1)
+        issued_book = IssuedBook.create(user: user, book: book1, quantity: 1)
         
-        allow(Book).to receive(:search).with('Ruby').and_return([book])
+        allow(Book).to receive(:search).with('Ruby').and_return([book1])
         
         get issued_books_path, params: { query: 'Ruby' }
         
-        expect(response.body).to include(book.book_name)
+        expect(response.body).to include(book1.book_name)
       end
     end
 
@@ -43,7 +43,7 @@ RSpec.describe IssuedBooksController, type: :request do
   end
 
   describe "POST /create" do
-    let(:valid_attributes) { { issued_book: { user_id: user.id, book_id: book.id, quantity: 1 } } }
+    let(:valid_attributes) { { issued_book: { user_id: user.id, book_id: book1.id, quantity: 1 } } }
 
     it "creates a new issued book" do
       expect {
@@ -55,7 +55,7 @@ RSpec.describe IssuedBooksController, type: :request do
   end
 
   describe "POST /issue_book" do
-    let(:valid_attributes) { { issued_book: { user_id: user.id, book_id: book.id, quantity: 1 } } }
+    let(:valid_attributes) { { issued_book: { user_id: user.id, book_id: book1.id, quantity: 1 } } }
 
     context "when issuing a new book" do
       it "creates a new issued book and returns success" do
@@ -79,20 +79,20 @@ RSpec.describe IssuedBooksController, type: :request do
   end
 
   describe "POST /approve_issue" do
-    let(:issued_book) { IssuedBook.create(user: user, book: book, quantity: 1) }
+    let(:issued_book) { IssuedBook.create(user: user, book: book1, quantity: 1) }
 
     context "when there are enough books in stock" do
       it "moves the book to borrowed books and updates stock" do
         post approve_issue_path(issued_book)
 
-        expect(book.reload.total_quantity).to eq(9)
-        expect(BorrowedBook.find_by(user_id: user.id, book_id: book.id).quantity).to eq(1)
+        expect(book1.reload.total_quantity).to eq(9)
+        expect(BorrowedBook.find_by(user_id: user.id, book_id: book1.id).quantity).to eq(1)
         expect(IssuedBook.exists?(issued_book.id)).to be_falsey
       end
     end
 
     context "when there are not enough books in stock" do
-      before { book.update(total_quantity: 0) }
+      before { book1.update(total_quantity: 0) }
 
       it "does not approve the issue and deletes the request" do
         post approve_issue_path(issued_book)
@@ -103,12 +103,12 @@ RSpec.describe IssuedBooksController, type: :request do
     end
 
     context "when book is already borrowed" do
-      before { create(:borrowed_book, user: user, book: book) }
+      before { create(:borrowed_book, user: user, book: book1) }
 
       it "adds the book to the borrowed books and deletes the request" do
         expect {
           post approve_issue_path(issued_book)
-        }.to change { BorrowedBook.find_by(user_id: user.id, book_id: book.id).quantity }.by(1)
+        }.to change { BorrowedBook.find_by(user_id: user.id, book_id: book1.id).quantity }.by(1)
         expect(IssuedBook.exists?(issued_book.id)).to be_falsey
       end
     end

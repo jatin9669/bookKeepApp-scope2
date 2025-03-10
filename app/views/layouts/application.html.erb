@@ -50,7 +50,7 @@
 
           <!-- Search Bar -->
           <div class="flex-1 max-w-lg flex items-center justify-center px-4">
-            <%= form_with(url: request.path, method: :get, class: "w-full", data: { turbo_frame: "books", turbo_action: "advance" }) do |f| %>
+            <%= form_with(url: request.path, method: :get, class: "w-full") do |f| %>
               <div class="relative w-full">
                 <%= f.text_field :query, 
                     value: params[:query],
