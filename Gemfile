@@ -72,3 +72,7 @@ gem "devise", "~> 4.9"
 
 gem "tailwindcss-rails", "~> 4.1"
 gem 'pg'
+gem "grape", "~> 2.3"
+gem 'rack-cors'
+gem 'grape-entity'
+gem 'actionpack' # Contains ActionDispatch classes for cookies and sessions

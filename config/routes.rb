@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  mount API => '/'
   post "returned_books/request_return_book", to: "returned_books#request_return_book", as: "request_return_book"
   post "issued_books/issue_book", to: "issued_books#issue_book", as: "issue_book"
   post "issued_books/approve_issue/:id", to: "issued_books#approve_issue", as: "approve_issue"
