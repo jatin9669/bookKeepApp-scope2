@@ -2,19 +2,46 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { RootState } from "../data/store";
+import { fetchAllIssueRequests } from "../data/issueRequestSlice";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../data/store";
 
 const IssueBookRequest: React.FC = () => {
   const issueRequested = useSelector(
     (state: RootState) => state.issueRequested.issueRequest
   );
+  const dispatch = useDispatch<AppDispatch>();
 
-  useEffect(() => {
-    console.log(issueRequested);
-  }, [issueRequested]);
+  const handleApprove = async (id: number,) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:3000/api/v1/issued_books/approve/${id}`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+      void dispatch(fetchAllIssueRequests());
+      console.log(response);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  const handleApprove = async (id: number) => {};
-
-  const handleReject = async (id: number) => {};
+  const handleReject = async (id: number) => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:3000/api/v1/issued_books/${id}`,
+        {
+          withCredentials: true,
+        }
+      );
+      void dispatch(fetchAllIssueRequests());
+      console.log(response);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div className="w-full">
@@ -56,7 +83,7 @@ const IssueBookRequest: React.FC = () => {
                     {issuedBook.email || "N/A"}
                   </p>
                   <p className="text-gray-500 text-sm mt-2">
-                    Quantity: {issuedBook.total_quantity}
+                    Quantity: {issuedBook.quantity}
                   </p>
                   <p className="text-gray-500 text-sm mt-2">
                     Issue Request Date:{" "}

@@ -61,11 +61,7 @@ const Books: React.FC<BooksProps> = ({
         <h2 className="text-xl font-bold text-gray-900 mb-2 line-clamp-1 group-hover:line-clamp-none transition-all duration-200">
           {book.book_name}
         </h2>
-        <p
-          className={`text-gray-600 text-sm ${
-            showQuantity ? "mb-4" : "mb-2"
-          } italic`}
-        >
+        <p className={`text-gray-600 text-sm mb-2 italic`}>
           by {book.author_name}
         </p>
 
@@ -86,18 +82,25 @@ const Books: React.FC<BooksProps> = ({
           </svg>
         </div>
 
-        {showQuantity &&
-          !isAdmin &&
+        {!isAdmin &&
           (quantity !== "total_quantity" ? (
             book.quantity && (
-              <h2 className="text-xl font-bold text-red-600 my-2 line-clamp-1 group-hover:line-clamp-none transition-all duration-200">
+              <h2
+                className={`${
+                  showQuantity === true ? "text-red-600" : "text-green-600"
+                } text-xl font-bold my-2 line-clamp-1 group-hover:line-clamp-none transition-all duration-200`}
+              >
                 {book.quantity === 0 ? "" : "Only"}{" "}
                 {book.quantity < 0 ? "0" : book.quantity} book
                 {book.quantity <= 1 ? "" : "s"} left!!
               </h2>
             )
           ) : (
-            <h2 className="text-xl font-bold text-red-600 my-2 line-clamp-1 group-hover:line-clamp-none transition-all duration-200">
+            <h2
+              className={`${
+                showQuantity === true ? "text-red-600" : "text-green-600"
+              } text-xl font-bold my-2 line-clamp-1 group-hover:line-clamp-none transition-all duration-200`}
+            >
               {book.total_quantity === 0 ? "" : "Only"}{" "}
               {book.total_quantity < 0 ? "0" : book.total_quantity} book
               {book.total_quantity <= 1 ? "" : "s"} left!!

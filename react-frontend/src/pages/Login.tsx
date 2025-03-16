@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../data/store";
 import { fetchMyBooks } from "../data/myBooksSlice";
 import { setUser } from "../data/userSlice";
-import { fetchAllUserReturnRequested } from "../data/userReturnRequestSlice";
+import { fetchAllUserReturnRequest } from "../data/userReturnRequestSlice";
 import { fetchAllIssueRequests } from "../data/issueRequestSlice";
 import { fetchAllReturnRequests } from "../data/returnRequestSlice";
 
@@ -45,7 +45,7 @@ const Login: React.FC = () => {
       console.log(response.data.user);
       dispatch(setUser(response.data.user));
       if (!response.data.user.is_admin) {
-        void dispatch(fetchAllUserReturnRequested(response.data.user.id));
+        void dispatch(fetchAllUserReturnRequest(response.data.user.id));
         void dispatch(fetchMyBooks());
         navigate("/");
       } else {

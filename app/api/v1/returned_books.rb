@@ -68,7 +68,7 @@ module V1
       end
 
       desc 'Approve a return request'
-      post ':id/approve' do
+      post 'approve/:id' do
         authenticate_user!
         error!('Unauthorized. Admin access required.', 401) unless current_user.is_admin?
         

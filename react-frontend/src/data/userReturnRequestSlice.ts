@@ -14,7 +14,7 @@ interface UserReturnRequested {
     user_id: number;
 }
 
-export const fetchAllUserReturnRequested = createAsyncThunk("returnRequested/fetchAllUserReturnRequested", async (userId: number) => {
+export const fetchAllUserReturnRequest = createAsyncThunk("returnRequested/fetchAllUserReturnRequested", async (userId: number) => {
     const response = await axios.get(`http://localhost:3000/api/v1/borrowed_books/user/${userId}`, { 
         withCredentials: true 
     });
@@ -32,14 +32,14 @@ const userReturnRequestedSlice = createSlice({
     },
     reducers: {},
     extraReducers: (builder) => {
-        builder.addCase(fetchAllUserReturnRequested.pending, (state) => {
+        builder.addCase(fetchAllUserReturnRequest.pending, (state) => {
             state.status = "loading";
         });
-        builder.addCase(fetchAllUserReturnRequested.fulfilled, (state, action) => {
+        builder.addCase(fetchAllUserReturnRequest.fulfilled, (state, action) => {
             state.status = "succeeded";
             state.userReturnRequest = action.payload;
         });
-        builder.addCase(fetchAllUserReturnRequested.rejected, (state, action) => {
+        builder.addCase(fetchAllUserReturnRequest.rejected, (state, action) => {
             state.status = "failed";
             state.error = action.error.message || null;
         });

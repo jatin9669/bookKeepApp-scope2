@@ -8,7 +8,6 @@ module V1
       desc 'Return list of books'
       get do
         books = Book.order(created_at: :asc)
-        puts "books: #{books}"
         
         if params[:query].present?
           books = books.search(params[:query])
@@ -17,6 +16,9 @@ module V1
         if current_user && !current_user.is_admin?
           issued_books = IssuedBook.where(user_id: current_user.id)
           books.map do |book|
+            puts "bookjatinx: #{book.book_name}"
+            puts book.total_quantity
+            puts issued_books.where(book_id: book.id).sum(:quantity)
             book_quantity = book.total_quantity - issued_books.where(book_id: book.id).sum(:quantity)
             {
               id: book.id,

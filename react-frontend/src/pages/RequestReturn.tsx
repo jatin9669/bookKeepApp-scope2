@@ -1,26 +1,11 @@
-//edit delete buy
 import React, { useState } from "react";
 import Books from "../components/Books";
 import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "../data/store";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-interface MyBooks {
-  id: number;
-  book_id: number;
-  user_id: number;
-  quantity: number;
-}
-
-interface Book {
-  id: number;
-  book_name: string;
-  author_name?: string;
-  total_quantity: number;
-  image_url?: string;
-}
-
+import axios from "axios";
+import { fetchAllUserReturnRequest } from "../data/userReturnRequestSlice";
 const RequestReturn: React.FC = () => {
   const navigate = useNavigate();
   const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
@@ -32,28 +17,63 @@ const RequestReturn: React.FC = () => {
     (state: RootState) => state.userReturnRequest.userReturnRequest
   );
 
-  const handleRequestToBorrow = (bookId: number) => {
-    setQuantities((prev) => ({ ...prev, [bookId]: quantities[bookId] }));
-    setShowControls((prev) => ({ ...prev, [bookId]: true }));
-  };
+  useEffect(() => {
+    const initialQuantities = userReturnRequest.reduce((acc, borrowedBook) => {
+      acc[borrowedBook.id] = 1;
+      return acc;
+    }, {} as { [key: number]: number });
+    setQuantities(initialQuantities);
+  }, []);
+  const dispatch = useDispatch<AppDispatch>();
 
-  const incrementQuantity = (bookId: number, totalQuantity: number) => {
+  const handleRequestToReturn = (borrowedBookId: number) => {
     setQuantities((prev) => ({
       ...prev,
-      [bookId]: Math.min((prev[bookId] || 1) + 1, totalQuantity),
+      [borrowedBookId]: quantities[borrowedBookId],
+    }));
+    setShowControls((prev) => ({ ...prev, [borrowedBookId]: true }));
+  };
+
+  const incrementQuantity = (borrowedBookId: number, totalQuantity: number) => {
+    setQuantities((prev) => ({
+      ...prev,
+      [borrowedBookId]: Math.min(
+        (prev[borrowedBookId] || 1) + 1,
+        totalQuantity
+      ),
     }));
   };
 
-  const decrementQuantity = (bookId: number) => {
+  const decrementQuantity = (borrowedBookId: number) => {
     setQuantities((prev) => ({
       ...prev,
-      [bookId]: Math.max((prev[bookId] || 1) - 1, 1),
+      [borrowedBookId]: Math.max((prev[borrowedBookId] || 1) - 1, 1),
     }));
   };
 
-  const handleConfirmPurchase = async (bookId: number, userId: number) => {
-    //     // Implement your purchase logic here
-    console.log(`Confirming purchase for book ${bookId} by user ${userId}`);
+  const handleConfirmReturn = async (
+    borrowedBookId: number,
+    userId: number
+  ) => {
+    console.log(
+      `Confirming return for book ${borrowedBookId} by user ${userId}`
+    );
+    try {
+      const response = await axios.post(
+        `http://localhost:3000/api/v1/returned_books`,
+        {
+          borrowed_book_id: borrowedBookId,
+          quantity: quantities[borrowedBookId],
+        },
+        { withCredentials: true }
+      );
+      console.log(response);
+    } catch (error) {
+      console.error("Error confirming return:", error);
+    }
+    void dispatch(fetchAllUserReturnRequest(currentUserId));
+    setQuantities((prev) => ({ ...prev, [borrowedBookId]: 1 }));
+    setShowControls((prev) => ({ ...prev, [borrowedBookId]: false }));
   };
 
   return (
@@ -80,73 +100,71 @@ const RequestReturn: React.FC = () => {
                 showQuantity={true}
                 quantity="quantity"
                 isAdmin={false}
-              />  
-                <div className="p-4 border-t border-gray-100 bg-gray-50 rounded-b-lg">
-                  {   book.total_quantity === 0 ? (
+              />
+              <div className="p-4 border-t border-gray-100 bg-gray-50 rounded-b-lg">
+                {showControls[book.id] ? (
+                  <>
+                    <div className="flex items-center justify-center">
+                      <button
+                        onClick={() => decrementQuantity(book.id)}
+                        disabled={quantities[book.id] === 1}
+                        className={`px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-md transition duration-200 hover:bg-gray-200 ${
+                          quantities[book.id] === 1
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                      >
+                        -
+                      </button>
+                      <span className="px-4 py-2.5 bg-gray-100 text-black font-medium rounded-md transition duration-200">
+                        {quantities[book.id] || 1}
+                      </span>
+                      <button
+                        onClick={() =>
+                          incrementQuantity(book.id, book.quantity)
+                        }
+                        disabled={quantities[book.id] === book.total_quantity}
+                        className={`px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-md transition duration-200 hover:bg-gray-200 ${
+                          quantities[book.id] === book.quantity
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                      >
+                        +
+                      </button>
+                    </div>
                     <button
-                      disabled
-                      className="w-full px-4 py-2.5 bg-gray-400 text-white font-medium rounded-md cursor-not-allowed"
+                      onClick={() =>
+                        currentUserId &&
+                        handleConfirmReturn(book.id, currentUserId)
+                      }
+                      className="mt-2 w-full px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white font-medium rounded-md transition duration-200 flex items-center justify-center"
                     >
-                      Not Available
+                      <svg
+                        className="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M5 12l5 5L20 7"
+                        />
+                      </svg>
+                      Confirm Return
                     </button>
-                  ) : (
-                    <>
-                      {showControls[book.id] ? (
-                        <>
-                          <div className="flex items-center justify-center">
-                            <button
-                              onClick={() => decrementQuantity(book.id)}
-                              className="px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-md transition duration-200 hover:bg-gray-200"
-                            >
-                              -
-                            </button>
-                            <span className="px-4 py-2.5 bg-gray-100 text-black font-medium rounded-md transition duration-200">
-                              {quantities[book.id] || 1}
-                            </span>
-                            <button
-                              onClick={() =>
-                                incrementQuantity(book.id, book.total_quantity)
-                              }
-                              className="px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-md transition duration-200 hover:bg-gray-200"
-                            >
-                              +
-                            </button>
-                          </div>
-                          <button
-                            onClick={() =>
-                              currentUserId &&
-                              handleConfirmPurchase(book.id, currentUserId)
-                            }
-                            className="mt-2 w-full px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white font-medium rounded-md transition duration-200 flex items-center justify-center"
-                          >
-                            <svg
-                              className="w-4 h-4 mr-2"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M5 12l5 5L20 7"
-                              />
-                            </svg>
-                            Confirm Purchase
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => handleRequestToBorrow(book.id)}
-                          className="w-full px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-md transition duration-200"
-                        >
-                          Request to borrow
-                        </button>
-                      )}
-                    </>
-                  )}
-                </div>
-  
+                  </>
+                ) : (
+                  <button
+                    onClick={() => handleRequestToReturn(book.id)}
+                    className="w-full px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-md transition duration-200"
+                  >
+                    Request to Return
+                  </button>
+                )}
+              </div>
             </div>
           ))
         ) : (

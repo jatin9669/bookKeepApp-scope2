@@ -8,8 +8,6 @@ module V1
       desc 'Get all issued books'
       get do
         authenticate_user!
-        puts "issued_books_jatin"
-        puts current_user.email
         error!('Unauthorized. Admin access required.', 401) unless current_user.is_admin?
         
         issued_books = IssuedBook.includes(:book, :user).all
@@ -69,7 +67,7 @@ module V1
       end
 
       desc 'Approve an issued book request'
-      post ':id/approve' do
+      post 'approve/:id' do
         authenticate_user!
         error!('Unauthorized. Admin access required.', 401) unless current_user.is_admin?
         

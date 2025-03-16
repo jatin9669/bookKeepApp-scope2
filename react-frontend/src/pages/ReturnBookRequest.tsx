@@ -2,15 +2,42 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { RootState } from "../data/store";
+import { fetchAllReturnRequests } from "../data/returnRequestSlice";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../data/store";
 
 const ReturnBookRequest: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const returnRequest = useSelector(
     (state: RootState) => state.returnRequest.returnRequest
   );
 
-  const handleApprove = async (id: number) => {};
+  const handleApprove = async (id: number) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:3000/api/v1/returned_books/approve/${id}`,
+        {},
+        { withCredentials: true }
+      );
+      void dispatch(fetchAllReturnRequests());
+      console.log(response);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  const handleReject = async (id: number) => {};
+  const handleReject = async (id: number) => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:3000/api/v1/returned_books/${id}`,
+        { withCredentials: true }
+      );
+      void dispatch(fetchAllReturnRequests());
+      console.log(response);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div className="w-full">

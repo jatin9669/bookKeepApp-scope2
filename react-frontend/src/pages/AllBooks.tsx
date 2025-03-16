@@ -6,6 +6,7 @@ import { AppDispatch, RootState } from "../data/store";
 import { fetchAllBooks } from "../data/booksSlice";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const AllBooks: React.FC = () => {
   const navigate = useNavigate();
@@ -20,12 +21,18 @@ const AllBooks: React.FC = () => {
 
   useEffect(() => {
     void dispatch(fetchAllBooks());
+    const initialQuantities = books.reduce((acc, book) => {
+      acc[book.id] = 1;
+      return acc;
+    }, {} as { [key: number]: number });
+    setQuantities(initialQuantities);
+    
     if("is_signed_in" in user) {
-        setShowQuantity(user.is_signed_in);
-        setCurrentUserId(user.id);
+      setShowQuantity(user.is_signed_in);
+      setCurrentUserId(user.id);
     }
     if("is_admin" in user) {
-        setIsAdmin(user.is_admin);
+      setIsAdmin(user.is_admin);
     }
   }, [dispatch, user]);
 
@@ -49,8 +56,22 @@ const AllBooks: React.FC = () => {
   };
 
   const handleConfirmPurchase = async (bookId: number, userId: number) => {
-//     // Implement your purchase logic here
     console.log(`Confirming purchase for book ${bookId} by user ${userId}`);
+    try {
+      const response = await axios.post(`http://localhost:3000/api/v1/issued_books`, {
+            book_id: bookId,
+            user_id: userId,
+            quantity: quantities[bookId] || 1
+        },
+       { withCredentials: true}
+      );
+      console.log(response);
+      void dispatch(fetchAllBooks());
+    } catch (error) {
+      console.error('Error confirming purchase:', error);
+    }
+    setQuantities((prev) => ({ ...prev, [bookId]: 1 }));
+    setShowControls((prev) => ({ ...prev, [bookId]: false }));
   };
 
   return (
@@ -125,9 +146,12 @@ const AllBooks: React.FC = () => {
                         Edit
                       </a>
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           if (window.confirm("Are you sure?")) {
-                            // Implement delete logic
+                            await axios.delete(`http://localhost:3000/api/v1/books/${book.id}`, {
+                              withCredentials: true,
+                            });
+                            void dispatch(fetchAllBooks());
                           }
                         }}
                         className="flex items-center justify-center w-full px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-medium rounded-md transition duration-200 cursor-pointer"
@@ -162,7 +186,12 @@ const AllBooks: React.FC = () => {
                           <div className="flex items-center justify-center">
                             <button
                               onClick={() => decrementQuantity(book.id)}
-                              className="px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-md transition duration-200 hover:bg-gray-200"
+                              disabled={quantities[book.id] === 1}
+                              className={`px-4 py-2.5 text-gray-700 font-medium rounded-md transition duration-200 ${
+                                quantities[book.id] === 1 
+                                  ? "opacity-50 cursor-not-allowed" 
+                                  : "hover:bg-gray-200"
+                              }`}
                             >
                               -
                             </button>
@@ -173,7 +202,12 @@ const AllBooks: React.FC = () => {
                               onClick={() =>
                                 incrementQuantity(book.id, book.total_quantity)
                               }
-                              className="px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-md transition duration-200 hover:bg-gray-200"
+                              disabled={quantities[book.id] === book.total_quantity}
+                              className={`px-4 py-2.5 text-gray-700 font-medium rounded-md transition duration-200 ${
+                                quantities[book.id] === book.total_quantity
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : "hover:bg-gray-200"
+                              }`}
                             >
                               +
                             </button>
