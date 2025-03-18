@@ -14,14 +14,17 @@ interface UserReturnRequested {
     user_id: number;
 }
 
-export const fetchAllUserReturnRequest = createAsyncThunk("returnRequested/fetchAllUserReturnRequested", async (userId: number) => {
-    const response = await axios.get(`http://localhost:3000/api/v1/borrowed_books/user/${userId}`, { 
+export const fetchAllUserReturnRequest = createAsyncThunk(
+  "returnRequested/fetchAllUserReturnRequested", 
+  async ({userId, query}: {userId: number, query: string}) => {
+    const response = await axios.get(`http://localhost:3000/api/v1/borrowed_books/user/${userId}?query=${query}`, { 
         withCredentials: true 
     });
     console.log("fetchAllUserReturnRequested");
     console.log(response.data);
     return response.data
-});
+  }
+);
 
 const userReturnRequestedSlice = createSlice({
     name: "userReturnRequested",
@@ -30,7 +33,11 @@ const userReturnRequestedSlice = createSlice({
         status: "idle",
         error: null as string | null,
     },
-    reducers: {},
+    reducers: {
+        resetUserReturnRequest: (state) => {
+            state.userReturnRequest = [];
+        },
+    },
     extraReducers: (builder) => {
         builder.addCase(fetchAllUserReturnRequest.pending, (state) => {
             state.status = "loading";
@@ -46,5 +53,6 @@ const userReturnRequestedSlice = createSlice({
     },
 });
 
+export const { resetUserReturnRequest } = userReturnRequestedSlice.actions;
 export default userReturnRequestedSlice.reducer;
 

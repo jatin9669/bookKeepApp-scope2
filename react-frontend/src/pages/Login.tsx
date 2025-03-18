@@ -8,6 +8,7 @@ import { setUser } from "../data/userSlice";
 import { fetchAllUserReturnRequest } from "../data/userReturnRequestSlice";
 import { fetchAllIssueRequests } from "../data/issueRequestSlice";
 import { fetchAllReturnRequests } from "../data/returnRequestSlice";
+import { setAlert, setNotice } from "../data/notificationSlice";
 
 interface LoginFormData {
   email: string;
@@ -42,19 +43,19 @@ const Login: React.FC = () => {
         { withCredentials: true }
       );
       response.data.user.is_signed_in = true;
-      console.log(response.data.user);
       dispatch(setUser(response.data.user));
+      dispatch(setNotice("You are logged in!"));
       if (!response.data.user.is_admin) {
-        void dispatch(fetchAllUserReturnRequest(response.data.user.id));
-        void dispatch(fetchMyBooks());
+        void dispatch(fetchAllUserReturnRequest({userId: response.data.user.id, query: ""}));
+        void dispatch(fetchMyBooks(""));
         navigate("/");
       } else {
-        void dispatch(fetchAllReturnRequests());
-        void dispatch(fetchAllIssueRequests());
+        void dispatch(fetchAllReturnRequests(""));
+        void dispatch(fetchAllIssueRequests(""));
         navigate("/");
       }
     } catch (error) {
-      console.error("Error:", error);
+      dispatch(setAlert("Invalid email or password"));
     }
   };
 

@@ -1,6 +1,16 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { setAlert } from "../data/notificationSlice";
+import { setNotice } from "../data/notificationSlice";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../data/store";
+import { setUser } from "../data/userSlice";
+import { fetchAllUserReturnRequest } from "../data/userReturnRequestSlice";
+import { fetchMyBooks } from "../data/myBooksSlice";
+import { fetchAllReturnRequests } from "../data/returnRequestSlice";
+import { fetchAllIssueRequests } from "../data/issueRequestSlice";
+
 interface SignupFormData {
   name: string;
   email: string;
@@ -9,28 +19,49 @@ interface SignupFormData {
 }
 
 const Signup: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<SignupFormData>({
-    name: '',
-    email: '',
-    password: '',
-    passwordConfirmation: ''
+    name: "",
+    email: "",
+    password: "",
+    passwordConfirmation: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prevState => ({
+    setFormData((prevState) => ({
       ...prevState,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try{
-        const response = await axios.post('http://localhost:3000/api/v1/users/register', formData);
-        console.log(response);
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/v1/users/register",
+        formData
+      );
+      response.data.user.is_signed_in = true;
+      dispatch(setUser(response.data.user));
+      dispatch(setNotice("You are signed up!"));
+      if (!response.data.user.is_admin) {
+        void dispatch(
+          fetchAllUserReturnRequest({
+            userId: response.data.user.id,
+            query: "",
+          })
+        );
+        void dispatch(fetchMyBooks(""));
+        navigate("/");  
+      } else {
+        void dispatch(fetchAllReturnRequests(""));
+        void dispatch(fetchAllIssueRequests(""));
+        navigate("/");
+      }
     } catch (error) {
-      console.error('Error:', error);
+      dispatch(setAlert("Error: " + error));
     }
   };
 
@@ -38,13 +69,18 @@ const Signup: React.FC = () => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign up</h2>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Sign up
+          </h2>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md -space-y-px">
             <div className="mb-4">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Name
               </label>
               <input
@@ -60,7 +96,10 @@ const Signup: React.FC = () => {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email
               </label>
               <input
@@ -76,10 +115,15 @@ const Signup: React.FC = () => {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
-              <span className="text-xs text-gray-500">(6 characters minimum)</span>
+              <span className="text-xs text-gray-500">
+                (6 characters minimum)
+              </span>
               <input
                 id="password"
                 name="password"
@@ -93,7 +137,10 @@ const Signup: React.FC = () => {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="passwordConfirmation" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="passwordConfirmation"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password confirmation
               </label>
               <input
@@ -120,7 +167,10 @@ const Signup: React.FC = () => {
         </form>
 
         <div className="mt-6 text-center text-sm">
-          <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+          <Link
+            to="/login"
+            className="font-medium text-indigo-600 hover:text-indigo-500"
+          >
             Already have an account? Log in
           </Link>
         </div>

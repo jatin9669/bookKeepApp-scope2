@@ -92,8 +92,7 @@ module V1
           id: current_user.id,
           name: current_user.name,
           email: current_user.email,
-          is_admin: current_user.is_admin,
-          api_token: current_user.api_token
+          is_admin: current_user.is_admin
         }
       end
 
@@ -108,12 +107,13 @@ module V1
       put :update_profile do
         authenticate_user!
 
-        # If changing password, verify current password
+        # Require current password for ANY profile update
+        unless params[:current_password].present? && current_user.valid_password?(params[:current_password])
+          error!({ message: 'Current password is incorrect' }, 422)
+        end
+
+        # Additional password validation only if changing password
         if params[:password].present?
-          unless params[:current_password].present? && current_user.valid_password?(params[:current_password])
-            error!({ message: 'Current password is incorrect' }, 422)
-          end
-          
           if params[:password] != params[:password_confirmation]
             error!({ message: 'Password confirmation does not match' }, 422)
           end
@@ -132,8 +132,7 @@ module V1
               id: current_user.id,
               name: current_user.name,
               email: current_user.email,
-              is_admin: current_user.is_admin,
-              api_token: current_user.api_token
+              is_admin: current_user.is_admin
             }
           }
         else
@@ -143,10 +142,15 @@ module V1
 
       # Admin only endpoints
       desc 'Get all users (Admin only)'
+      params do
+        optional :current_password, type: String
+      end
       get do
         authenticate_user!
         error!('Unauthorized. Admin access required.', 401) unless current_user.is_admin?
-        
+        unless params[:current_password].present? && current_user.valid_password?(params[:current_password])
+          error!({ message: 'Current password is incorrect' }, 422)
+        end
         users = User.all.order(created_at: :asc)
         users.map do |user|
           {

@@ -1,25 +1,26 @@
-//edit delete buy
 import Books from "../components/Books";
-import { useSelector } from "react-redux";
-import { RootState } from "../data/store";
-import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "../data/store";
 import { useNavigate } from "react-router-dom";
-
+import { useEffect } from "react";
+import { setAlert } from "../data/notificationSlice";
 const MyBooks: React.FC = () => {
   const myBooks = useSelector((state: RootState) => state.myBooks.myBooks);
-
+  const user = useSelector((state: RootState) => state.user.user);
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
+  useEffect(()=> {
+    if(!user.is_signed_in || user.is_admin) {
+      navigate("/");
+      dispatch(setAlert("Admins don't have collections of books"));
+    }
+  }, [user.is_signed_in, user.is_admin, navigate, dispatch]);
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-slate-100">
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center mb-8">
         <h1 className="font-bold text-4xl text-gray-900">My Books</h1>
-        <button
-          onClick={() => navigate("/request-return")}
-          className="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition duration-200"
-        >
-          Request Return
-        </button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -29,7 +30,12 @@ const MyBooks: React.FC = () => {
               key={book.id}
               className="group bg-white rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 h-[100%] "
             >
-              <Books book={book} showQuantity={false} quantity="quantity" isAdmin={false} />
+              <Books
+                book={book}
+                showQuantity={false}
+                quantity="quantity"
+                isSignedIn={true}
+              />
             </div>
           ))
         ) : (

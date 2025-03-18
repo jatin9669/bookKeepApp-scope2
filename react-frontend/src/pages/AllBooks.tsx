@@ -7,6 +7,8 @@ import { fetchAllBooks } from "../data/booksSlice";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { setAlert } from "../data/notificationSlice";
+import { setNotice } from "../data/notificationSlice";
 
 const AllBooks: React.FC = () => {
   const navigate = useNavigate();
@@ -14,13 +16,14 @@ const AllBooks: React.FC = () => {
   const [showControls, setShowControls] = useState<{ [key: number]: boolean }>({});
   const [showQuantity, setShowQuantity] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const books = useSelector((state: RootState) => state.books.books);
   const user = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    void dispatch(fetchAllBooks());
+    void dispatch(fetchAllBooks(""));
     const initialQuantities = books.reduce((acc, book) => {
       acc[book.id] = 1;
       return acc;
@@ -28,6 +31,7 @@ const AllBooks: React.FC = () => {
     setQuantities(initialQuantities);
     
     if("is_signed_in" in user) {
+      setIsSignedIn(user.is_signed_in);
       setShowQuantity(user.is_signed_in);
       setCurrentUserId(user.id);
     }
@@ -56,38 +60,31 @@ const AllBooks: React.FC = () => {
   };
 
   const handleConfirmPurchase = async (bookId: number, userId: number) => {
-    console.log(`Confirming purchase for book ${bookId} by user ${userId}`);
     try {
-      const response = await axios.post(`http://localhost:3000/api/v1/issued_books`, {
+      await axios.post(`http://localhost:3000/api/v1/issued_books`, {
             book_id: bookId,
             user_id: userId,
             quantity: quantities[bookId] || 1
         },
        { withCredentials: true}
       );
-      console.log(response);
-      void dispatch(fetchAllBooks());
+      void dispatch(fetchAllBooks(""));
+      dispatch(setNotice("Book purchase request sent successfully!"));
     } catch (error) {
-      console.error('Error confirming purchase:', error);
+      dispatch(setAlert("Error confirming purchase: " + error));
     }
     setQuantities((prev) => ({ ...prev, [bookId]: 1 }));
     setShowControls((prev) => ({ ...prev, [bookId]: false }));
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-slate-100">
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center mb-8">
         
         <h1 className="font-bold text-4xl text-gray-900">Books</h1>
-        <button
-          onClick={() => navigate('/my-books')}
-          className="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition duration-200"
-        >
-          My Books
-        </button>
         {isAdmin && (
-          <a
-            href="/books/new"
+          <button
+            onClick={() => navigate('/book/new')}
             className="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition duration-200"
           >
             <svg
@@ -104,7 +101,7 @@ const AllBooks: React.FC = () => {
               />
             </svg>
             New Book
-          </a>
+          </button>
           
         )}
       </div>
@@ -120,14 +117,14 @@ const AllBooks: React.FC = () => {
                   : ""
               }`}
             >
-              <Books book={book} showQuantity={showQuantity} quantity="total_quantity" isAdmin={isAdmin} />
+              <Books book={book} showQuantity={showQuantity} quantity="total_quantity" isSignedIn={isSignedIn} />
 
               {showQuantity && (
                 <div className="p-4 border-t border-gray-100 bg-gray-50 rounded-b-lg">
                   {isAdmin ? (
                     <div className="grid grid-cols-2 gap-3">
-                      <a
-                        href={`/books/${book.id}/edit`}
+                      <button
+                        onClick={() => navigate(`/edit/${book.id}`)}
                         className="flex items-center justify-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md transition duration-200"
                       >
                         <svg
@@ -144,14 +141,15 @@ const AllBooks: React.FC = () => {
                           />
                         </svg>
                         Edit
-                      </a>
+                      </button>
                       <button
                         onClick={async () => {
                           if (window.confirm("Are you sure?")) {
                             await axios.delete(`http://localhost:3000/api/v1/books/${book.id}`, {
                               withCredentials: true,
                             });
-                            void dispatch(fetchAllBooks());
+                            void dispatch(fetchAllBooks(""));
+                            dispatch(setNotice("Book deleted successfully!"));
                           }
                         }}
                         className="flex items-center justify-center w-full px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-medium rounded-md transition duration-200 cursor-pointer"

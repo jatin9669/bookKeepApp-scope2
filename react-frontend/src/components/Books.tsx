@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 
 interface Book {
   id: number;
@@ -13,18 +14,18 @@ interface BooksProps {
   book: Book;
   showQuantity: boolean;
   quantity: string;
-  isAdmin: boolean;
+  isSignedIn: boolean;
 }
 
 const Books: React.FC<BooksProps> = ({
   book,
   showQuantity,
   quantity,
-  isAdmin,
+  isSignedIn,
 }) => {
   return (
-    <a
-      href={`/books/${book.id}`}
+    <Link
+      to={`/book/${book.id}`}
       className="flex flex-col rounded-lg overflow-hidden group"
     >
       <div
@@ -82,7 +83,7 @@ const Books: React.FC<BooksProps> = ({
           </svg>
         </div>
 
-        {!isAdmin &&
+        {isSignedIn &&
           (quantity !== "total_quantity" ? (
             book.quantity && (
               <h2
@@ -107,7 +108,7 @@ const Books: React.FC<BooksProps> = ({
             </h2>
           ))}
       </div>
-    </a>
+    </Link>
   );
 };
 

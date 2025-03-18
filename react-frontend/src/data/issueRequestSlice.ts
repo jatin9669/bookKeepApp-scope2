@@ -17,8 +17,8 @@ interface IssueRequest {
 
 export const fetchAllIssueRequests = createAsyncThunk(
     "issueRequest/fetchAllIssueRequests",
-    async () => {
-        const response = await axios.get("http://localhost:3000/api/v1/issued_books", { withCredentials: true });
+    async (query: string) => {
+        const response = await axios.get(`http://localhost:3000/api/v1/issued_books?query=${query}`, { withCredentials: true });
         console.log("issueRequestSlice");
         console.log(response.data);
         return response.data
@@ -32,7 +32,11 @@ const issueRequestSlice = createSlice({
         status: "idle",
         error: null as string | null,
     },
-    reducers: {},
+    reducers: {
+        resetIssueRequest: (state) => {
+            state.issueRequest = [];
+        },
+    },
     extraReducers: (builder) => {
         builder.addCase(fetchAllIssueRequests.pending, (state) => {
             state.status = "loading";
@@ -48,4 +52,5 @@ const issueRequestSlice = createSlice({
     },
 });
 
+export const { resetIssueRequest } = issueRequestSlice.actions;
 export default issueRequestSlice.reducer;

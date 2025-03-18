@@ -3,19 +3,24 @@ import Books from "../components/Books";
 import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "../data/store";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { fetchAllUserReturnRequest } from "../data/userReturnRequestSlice";
+import { setAlert } from "../data/notificationSlice";
+import { setNotice } from "../data/notificationSlice";
+import { useNavigate } from "react-router-dom";
+
 const RequestReturn: React.FC = () => {
-  const navigate = useNavigate();
   const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
   const [showControls, setShowControls] = useState<{ [key: number]: boolean }>(
     {}
   );
-  const currentUserId = useSelector((state: RootState) => state.user.user.id);
+  const user = useSelector((state: RootState) => state.user.user);
+  const currentUserId = user.id;
   const userReturnRequest = useSelector(
     (state: RootState) => state.userReturnRequest.userReturnRequest
   );
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const initialQuantities = userReturnRequest.reduce((acc, borrowedBook) => {
@@ -24,7 +29,13 @@ const RequestReturn: React.FC = () => {
     }, {} as { [key: number]: number });
     setQuantities(initialQuantities);
   }, []);
-  const dispatch = useDispatch<AppDispatch>();
+
+  useEffect(()=> {
+    if(!user.is_signed_in || user.is_admin) {
+      navigate("/");
+      dispatch(setAlert("You are not authorized to return books"));
+    }
+  }, [user.is_signed_in, navigate, dispatch]);
 
   const handleRequestToReturn = (borrowedBookId: number) => {
     setQuantities((prev) => ({
@@ -51,15 +62,9 @@ const RequestReturn: React.FC = () => {
     }));
   };
 
-  const handleConfirmReturn = async (
-    borrowedBookId: number,
-    userId: number
-  ) => {
-    console.log(
-      `Confirming return for book ${borrowedBookId} by user ${userId}`
-    );
+  const handleConfirmReturn = async (borrowedBookId: number) => {
     try {
-      const response = await axios.post(
+      await axios.post(
         `http://localhost:3000/api/v1/returned_books`,
         {
           borrowed_book_id: borrowedBookId,
@@ -67,11 +72,13 @@ const RequestReturn: React.FC = () => {
         },
         { withCredentials: true }
       );
-      console.log(response);
+      dispatch(setNotice("Book returned successfully!"));
     } catch (error) {
-      console.error("Error confirming return:", error);
+      dispatch(setAlert("Error confirming return: " + error));
     }
-    void dispatch(fetchAllUserReturnRequest(currentUserId));
+    void dispatch(
+      fetchAllUserReturnRequest({ userId: currentUserId, query: "" })
+    );
     setQuantities((prev) => ({ ...prev, [borrowedBookId]: 1 }));
     setShowControls((prev) => ({ ...prev, [borrowedBookId]: false }));
   };
@@ -80,12 +87,6 @@ const RequestReturn: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center mb-8">
         <h1 className="font-bold text-4xl text-gray-900">Books to return</h1>
-        <button
-          onClick={() => navigate("/my-books")}
-          className="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition duration-200"
-        >
-          My Books
-        </button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -99,7 +100,7 @@ const RequestReturn: React.FC = () => {
                 book={book}
                 showQuantity={true}
                 quantity="quantity"
-                isAdmin={false}
+                isSignedIn={true}
               />
               <div className="p-4 border-t border-gray-100 bg-gray-50 rounded-b-lg">
                 {showControls[book.id] ? (
@@ -135,8 +136,7 @@ const RequestReturn: React.FC = () => {
                     </div>
                     <button
                       onClick={() =>
-                        currentUserId &&
-                        handleConfirmReturn(book.id, currentUserId)
+                        currentUserId && handleConfirmReturn(book.id)
                       }
                       className="mt-2 w-full px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white font-medium rounded-md transition duration-200 flex items-center justify-center"
                     >

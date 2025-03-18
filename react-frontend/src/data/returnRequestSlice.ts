@@ -18,8 +18,8 @@ interface ReturnRequest {
 
 export const fetchAllReturnRequests = createAsyncThunk(
     "returnRequest/fetchAllReturnRequests",
-    async () => {
-        const response = await axios.get("http://localhost:3000/api/v1/returned_books", { withCredentials: true });
+    async (query: string) => {
+        const response = await axios.get(`http://localhost:3000/api/v1/returned_books?query=${query}`, { withCredentials: true });
         console.log("returnRequestSlice");
         console.log(response.data);
         return response.data
@@ -33,7 +33,11 @@ const returnRequestSlice = createSlice({
         status: "idle",
         error: null as string | null,
     },
-    reducers: {},
+    reducers: {
+        resetReturnRequest: (state) => {
+            state.returnRequest = [];
+        },
+    },
     extraReducers: (builder) => {
         builder.addCase(fetchAllReturnRequests.pending, (state) => {
             state.status = "loading";
@@ -49,4 +53,5 @@ const returnRequestSlice = createSlice({
     },
 });
 
+export const { resetReturnRequest } = returnRequestSlice.actions;
 export default returnRequestSlice.reducer;

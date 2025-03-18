@@ -14,8 +14,8 @@ interface MyBooks {
     image_url?: string;
 }
 
-export const fetchMyBooks = createAsyncThunk("myBooks/fetchMyBooks", async () => {
-    const response = await axios.get("http://localhost:3000/api/v1/borrowed_books/my_books", {
+export const fetchMyBooks = createAsyncThunk("myBooks/fetchMyBooks", async (query: string) => {
+    const response = await axios.get(`http://localhost:3000/api/v1/borrowed_books/my_books?query=${query}`, {
         withCredentials: true,
     });
     console.log("fetchMyBooks");
@@ -30,7 +30,11 @@ const myBooksSlice = createSlice({
         status: "idle",
         error: null as string | null,
     },
-    reducers: {},
+    reducers: {
+        resetMyBooks: (state) => {
+            state.myBooks = [];
+        },
+    },
     extraReducers: (builder) => {
         builder.addCase(fetchMyBooks.pending, (state) => {
             state.status = "loading";
@@ -46,4 +50,5 @@ const myBooksSlice = createSlice({
     },
 });
 
+export const { resetMyBooks } = myBooksSlice.actions;
 export default myBooksSlice.reducer;

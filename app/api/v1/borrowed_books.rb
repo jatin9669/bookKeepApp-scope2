@@ -68,6 +68,13 @@ module V1
         borrowed_books = BorrowedBook.where(user_id: params[:user_id]).includes(:book, :user)
         returned_books = ReturnedBook.where(borrowed_book_id: borrowed_books.pluck(:id))
 
+        if params[:query].present?
+          book_ids = Book.search(params[:query]).pluck(:id)
+          borrowed_books = borrowed_books.where(book_id: book_ids)
+        end
+
+        borrowed_books = borrowed_books.order(created_at: :asc)
+
         borrowed_books.map do |borrowed_book|
           return_book = returned_books.find_by(borrowed_book_id: borrowed_book.id)
           if return_book && (borrowed_book.quantity - return_book.quantity) > 0
@@ -142,7 +149,7 @@ module V1
           book_ids = Book.search(params[:query]).pluck(:id)
           borrowed_books = borrowed_books.where(book_id: book_ids)
         end
-        
+
         borrowed_books.map do |book|
           remaining_quantity = book.quantity - return_books.where(borrowed_book_id: book.id).sum(:quantity)
           book.attributes.merge('remaining_quantity' => remaining_quantity)

@@ -1,62 +1,75 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { RootState } from "../data/store";
 import { fetchAllReturnRequests } from "../data/returnRequestSlice";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../data/store";
+import { setNotice } from "../data/notificationSlice";
+import { setAlert } from "../data/notificationSlice"; 
+import { useNavigate } from "react-router-dom";
 
 const ReturnBookRequest: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const returnRequest = useSelector(
     (state: RootState) => state.returnRequest.returnRequest
   );
+  const user = useSelector((state: RootState) => state.user.user);
+  const navigate = useNavigate();
+
+  useEffect(()=> {
+    if(!user.is_signed_in || !user.is_admin) {
+      navigate("/");
+      console.log("You are not authorized to return books");
+      dispatch(setAlert("You are not authorized to return books"));
+    }
+  }, [user.is_signed_in, user.is_admin, navigate, dispatch]);
 
   const handleApprove = async (id: number) => {
     try {
-      const response = await axios.post(
+      await axios.post(
         `http://localhost:3000/api/v1/returned_books/approve/${id}`,
         {},
         { withCredentials: true }
       );
-      void dispatch(fetchAllReturnRequests());
-      console.log(response);
+      void dispatch(fetchAllReturnRequests(""));
+      dispatch(setNotice("Book return request approved successfully!"));
     } catch (error) {
-      console.error(error);
+      dispatch(setAlert("Error approving book return request: " + error));
     }
   };
 
   const handleReject = async (id: number) => {
     try {
-      const response = await axios.delete(
+      await axios.delete(
         `http://localhost:3000/api/v1/returned_books/${id}`,
         { withCredentials: true }
       );
-      void dispatch(fetchAllReturnRequests());
-      console.log(response);
+      void dispatch(fetchAllReturnRequests(""));
+      dispatch(setNotice("Book rejected successfully!"));
     } catch (error) {
-      console.error(error);
+      dispatch(setAlert("Error rejecting book: " + error));
     }
   };
 
   return (
-    <div className="w-full">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="font-bold text-4xl">Return books Request</h1>
+    <div className="w-full bg-slate-100">
+      <div className="flex justify-between items-center mb-6 max-w-6xl mx-auto">
+        <h1 className="font-bold my-10 text-4xl">Return books Request</h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
         {returnRequest.length > 0 ? (
           returnRequest.map((returnBook) => (
             <div
               key={returnBook.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300 ease-in-out"
+              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition duration-300 ease-in-out max-w-sm mx-auto w-full transform hover:scale-105 hover:border-blue-300 border-2 border-transparent"
             >
               {returnBook.image_url && (
                 <img
                   src={returnBook.image_url}
                   alt={returnBook.book_name || "Book cover"}
-                  className="w-full h-48 object-contain"
+                  className="w-full h-48 mt-5 object-contain"
                 />
               )}
 
@@ -97,13 +110,13 @@ const ReturnBookRequest: React.FC = () => {
                 <div className="flex justify-between items-center mt-4 pt-4 border-t">
                   <button
                     onClick={() => handleApprove(returnBook.id)}
-                    className="text-blue-600 hover:text-blue-800 font-medium"
+                    className="text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
                   >
                     Accept
                   </button>
                   <button
                     onClick={() => handleReject(returnBook.id)}
-                    className="text-red-600 hover:text-red-800 font-medium"
+                    className="text-red-600 hover:text-red-800 font-medium cursor-pointer"
                   >
                     Reject
                   </button>
