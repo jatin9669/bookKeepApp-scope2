@@ -34,7 +34,7 @@ const Edit: React.FC = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async () => {
     try {
       await axios.post(`http://localhost:3000/api/v1/books`, books, {
         withCredentials: true,
@@ -42,15 +42,15 @@ const Edit: React.FC = () => {
       void dispatch(fetchAllBooks(""));
       dispatch(setNotice("Book added successfully!"));
       navigate(`/`);
-    } catch (error) {
-      dispatch(setAlert("Error adding book: " + error));
+    } catch (error: any) {
+      dispatch(setAlert("Error adding book: " + (error.response?.data?.message || "Unknown error")));
     }
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="md:w-2/3 w-full">
-        <h1 className="font-bold text-4xl mb-6">Editing book</h1>
+        <h1 className="font-bold text-4xl mb-6">Create New Book</h1>
 
         <div
           onSubmit={handleSubmit}

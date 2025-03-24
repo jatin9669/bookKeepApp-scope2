@@ -129,6 +129,7 @@ const Navbar: React.FC = () => {
   const handleLogout = async () => {
     setIsDropdownOpen(false);
     try {
+      navigate("/login");
       await axios.delete("http://localhost:3000/api/v1/users/logout", {
         withCredentials: true,
       });
@@ -138,7 +139,6 @@ const Navbar: React.FC = () => {
       dispatch(resetReturnRequest());
       dispatch(resetIssueRequest());
       dispatch(clearUser());
-      navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
     }

@@ -43,13 +43,14 @@ module V1
       end
       post do
         authenticate_user!
+        error!("Unauthorized. Admin can't request book return.", 401) if current_user.is_admin?
         
         existing_record = ReturnedBook.find_by(borrowed_book_id: params[:borrowed_book_id])
         
         if existing_record
           existing_record.quantity += params[:quantity]
           if existing_record.save
-            { success: true, message: 'Book return request submitted successfully' }
+            { success: true, message: 'Book return request updated successfully' }
           else
             error!({ success: false, message: 'Unable to request book return' }, 422)
           end

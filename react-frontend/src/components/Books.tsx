@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 interface Book {
@@ -15,6 +15,7 @@ interface BooksProps {
   showQuantity: boolean;
   quantity: string;
   isSignedIn: boolean;
+  id: number;
 }
 
 const Books: React.FC<BooksProps> = ({
@@ -22,10 +23,11 @@ const Books: React.FC<BooksProps> = ({
   showQuantity,
   quantity,
   isSignedIn,
+  id,
 }) => {
   return (
     <Link
-      to={`/book/${book.id}`}
+      to={`/book/${id}`}
       className="flex flex-col rounded-lg overflow-hidden group"
     >
       <div

@@ -21,6 +21,7 @@ const RequestReturn: React.FC = () => {
   );
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const [currentBookId, setCurrentBookId] = useState<number | null>(null);
 
   useEffect(() => {
     const initialQuantities = userReturnRequest.reduce((acc, borrowedBook) => {
@@ -43,6 +44,12 @@ const RequestReturn: React.FC = () => {
       [borrowedBookId]: quantities[borrowedBookId],
     }));
     setShowControls((prev) => ({ ...prev, [borrowedBookId]: true }));
+    if(currentBookId){
+      setQuantities((prev) => ({ ...prev, [currentBookId]: 1 }));
+      setShowControls((prev) => ({ ...prev, [currentBookId]: false }));
+      setCurrentBookId(null);
+    }
+    setCurrentBookId(borrowedBookId);
   };
 
   const incrementQuantity = (borrowedBookId: number, totalQuantity: number) => {
@@ -73,8 +80,8 @@ const RequestReturn: React.FC = () => {
         { withCredentials: true }
       );
       dispatch(setNotice("Book returned successfully!"));
-    } catch (error) {
-      dispatch(setAlert("Error confirming return: " + error));
+    } catch (error: any) {
+      dispatch(setAlert("Error confirming return: " + (error.response?.data?.message || "Unknown error")));
     }
     void dispatch(
       fetchAllUserReturnRequest({ userId: currentUserId, query: "" })
@@ -98,6 +105,7 @@ const RequestReturn: React.FC = () => {
             >
               <Books
                 book={book}
+                id={book.book_id}
                 showQuantity={true}
                 quantity="quantity"
                 isSignedIn={true}
@@ -124,7 +132,7 @@ const RequestReturn: React.FC = () => {
                         onClick={() =>
                           incrementQuantity(book.id, book.quantity)
                         }
-                        disabled={quantities[book.id] === book.total_quantity}
+                        disabled={quantities[book.id] === book.quantity}
                         className={`px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-md transition duration-200 hover:bg-gray-200 ${
                           quantities[book.id] === book.quantity
                             ? "opacity-50 cursor-not-allowed"
@@ -186,9 +194,6 @@ const RequestReturn: React.FC = () => {
               <h3 className="mt-2 text-lg font-medium text-gray-900">
                 No books found
               </h3>
-              <p className="mt-1 text-gray-500">
-                Get started by creating a new book.
-              </p>
             </div>
           </div>
         )}

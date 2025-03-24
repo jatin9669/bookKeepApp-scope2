@@ -42,8 +42,8 @@ const IssueBookRequest: React.FC = () => {
       );
       void dispatch(fetchAllIssueRequests(""));
       dispatch(setNotice("Book rejected successfully!"));
-    } catch (error) {
-      dispatch(setAlert("Error rejecting book: " + error));
+    } catch (error: any) {
+      dispatch(setAlert("Error rejecting book: " + (error.response?.data?.message || "Unknown error")));
     }
   };
 

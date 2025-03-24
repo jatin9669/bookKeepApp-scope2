@@ -1,5 +1,9 @@
 FactoryBot.define do
   factory :book do
+    book_name { 'Default Book' }
+    author_name { 'Default Author' }
+    total_quantity { 1 }
+
     factory :book1 do
       book_name { 'Ruby Programming' }
       author_name { 'John Doe' }
@@ -18,4 +22,4 @@ FactoryBot.define do
       total_quantity { 0 }
     end
   end
-end 
+end

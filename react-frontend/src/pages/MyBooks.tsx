@@ -32,6 +32,7 @@ const MyBooks: React.FC = () => {
             >
               <Books
                 book={book}
+                id={book.book_id}
                 showQuantity={false}
                 quantity="quantity"
                 isSignedIn={true}
@@ -57,9 +58,6 @@ const MyBooks: React.FC = () => {
               <h3 className="mt-2 text-lg font-medium text-gray-900">
                 No books found
               </h3>
-              <p className="mt-1 text-gray-500">
-                Get started by creating a new book.
-              </p>
             </div>
           </div>
         )}

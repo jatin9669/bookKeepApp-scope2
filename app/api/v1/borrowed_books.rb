@@ -42,17 +42,6 @@ module V1
         end
       end
 
-      desc 'Delete a borrowed book'
-      delete ':id' do
-        authenticate_user!
-        error!('Unauthorized. Admins dont have collections.', 401) if current_user.is_admin?
-        
-        borrowed_book = BorrowedBook.find(params[:id])
-        borrowed_book.destroy
-        { message: 'Borrowed book was successfully destroyed' }
-      end
-
-
       desc 'Get all books left to raise return request'
       params do
         requires :user_id, type: Integer, desc: 'ID of the user'
@@ -61,7 +50,7 @@ module V1
         authenticate_user!
         
         # Check if the current user is the requested user or an admin
-        unless current_user.id == params[:user_id].to_i || current_user.is_admin?
+        if current_user.id != params[:user_id].to_i || current_user.is_admin?
           error!('Unauthorized. You can only view your own returned books.', 401)
         end
         
@@ -136,25 +125,6 @@ module V1
             }
           end
         end
-
-      desc 'Request return of books'
-      get :request_return do
-        authenticate_user!
-        error!('Unauthorized. Admins dont have collections.', 401) if current_user.is_admin?
-        
-        borrowed_books = BorrowedBook.where(user_id: current_user.id)
-        return_books = ReturnedBook.all
-        
-        if params[:query].present?
-          book_ids = Book.search(params[:query]).pluck(:id)
-          borrowed_books = borrowed_books.where(book_id: book_ids)
-        end
-
-        borrowed_books.map do |book|
-          remaining_quantity = book.quantity - return_books.where(borrowed_book_id: book.id).sum(:quantity)
-          book.attributes.merge('remaining_quantity' => remaining_quantity)
-        end
-      end
     end
 
     helpers do

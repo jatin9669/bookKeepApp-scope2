@@ -51,8 +51,8 @@ const EditUser: React.FC = () => {
       }));
       navigate(`/`);
       dispatch(setNotice("User updated successfully!"));
-    } catch (error) {
-      dispatch(setAlert("Error updating user: " + error));
+    } catch (error: any) {
+      dispatch(setAlert("Error updating user: " + (error.response?.data?.message || "Unknown error")));
     }
   };
 
@@ -72,8 +72,8 @@ const EditUser: React.FC = () => {
       dispatch(resetIssueRequest());
       navigate(`/login`);
       dispatch(setNotice("User deleted successfully!"));
-    } catch (error) {
-      dispatch(setAlert("Error deleting user: " + error));
+    } catch (error: any) {
+      dispatch(setAlert("Error deleting user: " + (error.response?.data?.message || "Unknown error")));
     }
   };
 

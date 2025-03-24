@@ -65,8 +65,8 @@ const EditBook: React.FC = () => {
       void dispatch(fetchAllReturnRequests(""));
       navigate(`/`);
       dispatch(setNotice("Book updated successfully!"));
-    } catch (error) {
-      dispatch(setAlert("Error updating book: " + error));
+    } catch (error: any) {
+      dispatch(setAlert("Error updating book: " + (error.response?.data?.message || "Unknown error")));
     }
   };
 

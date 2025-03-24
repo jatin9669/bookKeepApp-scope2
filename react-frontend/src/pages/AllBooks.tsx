@@ -1,4 +1,3 @@
-//edit delete buy
 import React, { useState } from "react";
 import Books from "../components/Books";
 import { useSelector, useDispatch } from "react-redux";
@@ -13,11 +12,14 @@ import { setNotice } from "../data/notificationSlice";
 const AllBooks: React.FC = () => {
   const navigate = useNavigate();
   const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
-  const [showControls, setShowControls] = useState<{ [key: number]: boolean }>({});
+  const [showControls, setShowControls] = useState<{ [key: number]: boolean }>(
+    {}
+  );
   const [showQuantity, setShowQuantity] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [currentBookId, setCurrentBookId] = useState<number | null>(null);
   const books = useSelector((state: RootState) => state.books.books);
   const user = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch<AppDispatch>();
@@ -29,13 +31,13 @@ const AllBooks: React.FC = () => {
       return acc;
     }, {} as { [key: number]: number });
     setQuantities(initialQuantities);
-    
-    if("is_signed_in" in user) {
+
+    if ("is_signed_in" in user) {
       setIsSignedIn(user.is_signed_in);
       setShowQuantity(user.is_signed_in);
       setCurrentUserId(user.id);
     }
-    if("is_admin" in user) {
+    if ("is_admin" in user) {
       setIsAdmin(user.is_admin);
     }
   }, [dispatch, user]);
@@ -43,6 +45,12 @@ const AllBooks: React.FC = () => {
   const handleRequestToBorrow = (bookId: number) => {
     setQuantities((prev) => ({ ...prev, [bookId]: quantities[bookId] }));
     setShowControls((prev) => ({ ...prev, [bookId]: true }));
+    if(currentBookId){
+      setQuantities((prev) => ({ ...prev, [currentBookId]: 1 }));
+      setShowControls((prev) => ({ ...prev, [currentBookId]: false }));
+      setCurrentBookId(null);
+    }
+    setCurrentBookId(bookId);
   };
 
   const incrementQuantity = (bookId: number, totalQuantity: number) => {
@@ -61,17 +69,24 @@ const AllBooks: React.FC = () => {
 
   const handleConfirmPurchase = async (bookId: number, userId: number) => {
     try {
-      await axios.post(`http://localhost:3000/api/v1/issued_books`, {
-            book_id: bookId,
-            user_id: userId,
-            quantity: quantities[bookId] || 1
+      await axios.post(
+        `http://localhost:3000/api/v1/issued_books`,
+        {
+          book_id: bookId,
+          user_id: userId,
+          quantity: quantities[bookId] || 1,
         },
-       { withCredentials: true}
+        { withCredentials: true }
       );
       void dispatch(fetchAllBooks(""));
       dispatch(setNotice("Book purchase request sent successfully!"));
-    } catch (error) {
-      dispatch(setAlert("Error confirming purchase: " + error));
+    } catch (error: any) {
+      dispatch(
+        setAlert(
+          "Error confirming purchase: " +
+            (error.response?.data?.message || "Unknown error")
+        )
+      );
     }
     setQuantities((prev) => ({ ...prev, [bookId]: 1 }));
     setShowControls((prev) => ({ ...prev, [bookId]: false }));
@@ -80,11 +95,10 @@ const AllBooks: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-slate-100">
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center mb-8">
-        
         <h1 className="font-bold text-4xl text-gray-900">Books</h1>
         {isAdmin && (
           <button
-            onClick={() => navigate('/book/new')}
+            onClick={() => navigate("/book/new")}
             className="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition duration-200"
           >
             <svg
@@ -102,7 +116,6 @@ const AllBooks: React.FC = () => {
             </svg>
             New Book
           </button>
-          
         )}
       </div>
 
@@ -112,12 +125,16 @@ const AllBooks: React.FC = () => {
             <div
               key={book.id}
               className={`group bg-white rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 h-[100%] ${
-                !isAdmin && book.total_quantity === 0
-                  ? "opacity-75"
-                  : ""
+                !isAdmin && book.total_quantity === 0 ? "opacity-75" : ""
               }`}
             >
-              <Books book={book} showQuantity={showQuantity} quantity="total_quantity" isSignedIn={isSignedIn} />
+              <Books
+                book={book}
+                id={book.id}
+                showQuantity={showQuantity}
+                quantity="total_quantity"
+                isSignedIn={isSignedIn}
+              />
 
               {showQuantity && (
                 <div className="p-4 border-t border-gray-100 bg-gray-50 rounded-b-lg">
@@ -145,9 +162,12 @@ const AllBooks: React.FC = () => {
                       <button
                         onClick={async () => {
                           if (window.confirm("Are you sure?")) {
-                            await axios.delete(`http://localhost:3000/api/v1/books/${book.id}`, {
-                              withCredentials: true,
-                            });
+                            await axios.delete(
+                              `http://localhost:3000/api/v1/books/${book.id}`,
+                              {
+                                withCredentials: true,
+                              }
+                            );
                             void dispatch(fetchAllBooks(""));
                             dispatch(setNotice("Book deleted successfully!"));
                           }
@@ -186,8 +206,8 @@ const AllBooks: React.FC = () => {
                               onClick={() => decrementQuantity(book.id)}
                               disabled={quantities[book.id] === 1}
                               className={`px-4 py-2.5 text-gray-700 font-medium rounded-md transition duration-200 ${
-                                quantities[book.id] === 1 
-                                  ? "opacity-50 cursor-not-allowed" 
+                                quantities[book.id] === 1
+                                  ? "opacity-50 cursor-not-allowed"
                                   : "hover:bg-gray-200"
                               }`}
                             >
@@ -200,7 +220,9 @@ const AllBooks: React.FC = () => {
                               onClick={() =>
                                 incrementQuantity(book.id, book.total_quantity)
                               }
-                              disabled={quantities[book.id] === book.total_quantity}
+                              disabled={
+                                quantities[book.id] === book.total_quantity
+                              }
                               className={`px-4 py-2.5 text-gray-700 font-medium rounded-md transition duration-200 ${
                                 quantities[book.id] === book.total_quantity
                                   ? "opacity-50 cursor-not-allowed"
@@ -211,14 +233,27 @@ const AllBooks: React.FC = () => {
                             </button>
                           </div>
                           <button
-                              onClick={() => currentUserId && handleConfirmPurchase(book.id, currentUserId)}
-                              className="mt-2 w-full px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white font-medium rounded-md transition duration-200 flex items-center justify-center"
+                            onClick={() =>
+                              currentUserId &&
+                              handleConfirmPurchase(book.id, currentUserId)
+                            }
+                            className="mt-2 w-full px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white font-medium rounded-md transition duration-200 flex items-center justify-center"
+                          >
+                            <svg
+                              className="w-4 h-4 mr-2"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
                             >
-                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12l5 5L20 7"/>
-                              </svg>
-                              Confirm Purchase
-                            </button>
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M5 12l5 5L20 7"
+                              />
+                            </svg>
+                            Confirm Purchase
+                          </button>
                         </>
                       ) : (
                         <button
@@ -253,9 +288,6 @@ const AllBooks: React.FC = () => {
               <h3 className="mt-2 text-lg font-medium text-gray-900">
                 No books found
               </h3>
-              <p className="mt-1 text-gray-500">
-                Get started by creating a new book.
-              </p>
             </div>
           </div>
         )}

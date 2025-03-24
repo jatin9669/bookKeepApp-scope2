@@ -34,8 +34,8 @@ const ReturnBookRequest: React.FC = () => {
       );
       void dispatch(fetchAllReturnRequests(""));
       dispatch(setNotice("Book return request approved successfully!"));
-    } catch (error) {
-      dispatch(setAlert("Error approving book return request: " + error));
+    } catch (error: any) {
+      dispatch(setAlert("Error approving book return request: " + (error.response?.data?.message || "Unknown error")));
     }
   };
 
@@ -46,7 +46,7 @@ const ReturnBookRequest: React.FC = () => {
         { withCredentials: true }
       );
       void dispatch(fetchAllReturnRequests(""));
-      dispatch(setNotice("Book rejected successfully!"));
+      dispatch(setNotice("Book return request rejected successfully!"));
     } catch (error) {
       dispatch(setAlert("Error rejecting book: " + error));
     }
@@ -86,10 +86,10 @@ const ReturnBookRequest: React.FC = () => {
                     Return Request:
                   </h3>
                   <p className="text-gray-600">
-                    {returnBook.user_id || "Unknown User"}
+                    {returnBook.name || "Unknown User"}
                   </p>
                   <p className="text-gray-500 text-sm">
-                    {returnBook.user_id || "N/A"}
+                    {returnBook.email || "N/A"}
                   </p>
                   <p className="text-gray-500 text-sm mt-2">
                     Quantity: {returnBook.quantity}

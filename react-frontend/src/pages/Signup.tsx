@@ -15,7 +15,7 @@ interface SignupFormData {
   name: string;
   email: string;
   password: string;
-  passwordConfirmation: string;
+  password_confirmation: string;
 }
 
 const Signup: React.FC = () => {
@@ -25,7 +25,7 @@ const Signup: React.FC = () => {
     name: "",
     email: "",
     password: "",
-    passwordConfirmation: "",
+    password_confirmation: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,7 +41,10 @@ const Signup: React.FC = () => {
     try {
       const response = await axios.post(
         "http://localhost:3000/api/v1/users/register",
-        formData
+        formData,
+        {
+          withCredentials: true,
+        }
       );
       response.data.user.is_signed_in = true;
       dispatch(setUser(response.data.user));
@@ -54,14 +57,14 @@ const Signup: React.FC = () => {
           })
         );
         void dispatch(fetchMyBooks(""));
-        navigate("/");  
+        navigate("/");
       } else {
         void dispatch(fetchAllReturnRequests(""));
         void dispatch(fetchAllIssueRequests(""));
         navigate("/");
       }
-    } catch (error) {
-      dispatch(setAlert("Error: " + error));
+    } catch (error: any) {
+      dispatch(setAlert("Error: " + (error.response?.data?.message || "Unknown error")));
     }
   };
 
@@ -144,12 +147,12 @@ const Signup: React.FC = () => {
                 Password confirmation
               </label>
               <input
-                id="passwordConfirmation"
-                name="passwordConfirmation"
+                id="password_confirmation"
+                name="password_confirmation"
                 type="password"
                 autoComplete="new-password"
                 required
-                value={formData.passwordConfirmation}
+                value={formData.password_confirmation}
                 onChange={handleChange}
                 className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               />

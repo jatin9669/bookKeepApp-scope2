@@ -20,7 +20,7 @@ export const fetchAllUserReturnRequest = createAsyncThunk(
     const response = await axios.get(`http://localhost:3000/api/v1/borrowed_books/user/${userId}?query=${query}`, { 
         withCredentials: true 
     });
-    console.log("fetchAllUserReturnRequested");
+    console.log("fetchAllUserReturnRequest");
     console.log(response.data);
     return response.data
   }

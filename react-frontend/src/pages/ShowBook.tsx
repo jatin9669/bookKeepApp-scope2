@@ -2,7 +2,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { RootState, AppDispatch } from "../data/store";
 import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
-import { useState } from "react";
 import { fetchAllBooks } from "../data/booksSlice";
 import { setNotice } from "../data/notificationSlice";
 import { setAlert } from "../data/notificationSlice";
@@ -33,8 +32,8 @@ export default function ShowBook() {
                 dispatch(setNotice("Book deleted successfully!"));
                 void dispatch(fetchAllBooks(""));
                 dispatch(setNotice("Book deleted successfully!"));
-            } catch (error) {
-                dispatch(setAlert("Error deleting book: " + error));
+            } catch (error: any) {
+                dispatch(setAlert("Error deleting book: " + (error.response?.data?.message || "Unknown error")));
             }
         }
     };

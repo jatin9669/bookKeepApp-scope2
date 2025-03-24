@@ -75,8 +75,14 @@ module V1
       end
 
       desc 'Delete user account'
+      params do
+        requires :current_password, type: String
+      end
       delete :delete_account do
         authenticate_user!
+        unless params[:current_password].present? && current_user.valid_password?(params[:current_password])
+          error!({ message: 'Current password is incorrect' }, 422)
+        end
         if current_user.destroy
           request.session[:user_id] = nil
           { message: 'Account successfully deleted' }
@@ -84,18 +90,7 @@ module V1
           error!({ message: 'Failed to delete account', errors: current_user.errors.full_messages }, 422)
         end
       end
-
-      desc 'Get current user profile'
-      get :profile do
-        authenticate_user!
-        {
-          id: current_user.id,
-          name: current_user.name,
-          email: current_user.email,
-          is_admin: current_user.is_admin
-        }
-      end
-
+      
       desc 'Update user profile'
       params do
         optional :email, type: String, regexp: /.+@.+/
@@ -137,54 +132,6 @@ module V1
           }
         else
           error!({ message: 'Update failed', errors: current_user.errors.full_messages }, 422)
-        end
-      end
-
-      # Admin only endpoints
-      desc 'Get all users (Admin only)'
-      params do
-        optional :current_password, type: String
-      end
-      get do
-        authenticate_user!
-        error!('Unauthorized. Admin access required.', 401) unless current_user.is_admin?
-        unless params[:current_password].present? && current_user.valid_password?(params[:current_password])
-          error!({ message: 'Current password is incorrect' }, 422)
-        end
-        users = User.all.order(created_at: :asc)
-        users.map do |user|
-          {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            is_admin: user.is_admin,
-            created_at: user.created_at
-          }
-        end
-      end
-
-      desc 'Update user admin status (Admin only)'
-      params do
-        requires :user_id, type: Integer
-        requires :is_admin, type: Boolean
-      end
-      put :update_admin_status do
-        authenticate_user!
-        error!('Unauthorized. Admin access required.', 401) unless current_user.is_admin?
-        
-        user = User.find(params[:user_id])
-        if user.update(is_admin: params[:is_admin])
-          {
-            message: 'User admin status updated successfully',
-            user: {
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              is_admin: user.is_admin
-            }
-          }
-        else
-          error!({ message: 'Update failed', errors: user.errors.full_messages }, 422)
         end
       end
     end
