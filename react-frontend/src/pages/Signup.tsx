@@ -141,7 +141,7 @@ const Signup: React.FC = () => {
 
             <div className="mb-4">
               <label
-                htmlFor="passwordConfirmation"
+                htmlFor="password_confirmation"
                 className="block text-sm font-medium text-gray-700"
               >
                 Password confirmation

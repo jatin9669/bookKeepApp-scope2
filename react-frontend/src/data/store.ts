@@ -2,7 +2,6 @@ import { configureStore } from "@reduxjs/toolkit";
 import storage from "redux-persist/lib/storage"; // Uses localStorage
 import { persistReducer, persistStore, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from "redux-persist";
 import { combineReducers } from "redux";
-
 import bookReducer from "./booksSlice";
 import userReducer from "./userSlice";
 import myBooksReducer from "./myBooksSlice";
@@ -10,8 +9,8 @@ import userReturnRequestedReducer from "./userReturnRequestSlice";
 import issueRequestedReducer from "./issueRequestSlice";
 import returnRequestReducer from "./returnRequestSlice";
 import notificationReducer from "./notificationSlice";
-// Combine reducers
-const rootReducer = combineReducers({
+
+export const rootReducer = combineReducers({
     books: bookReducer,
     user: userReducer,
     myBooks: myBooksReducer,
